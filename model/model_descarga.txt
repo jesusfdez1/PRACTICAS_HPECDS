@@ -1,3 +1,0 @@
-Descargar e insertar como model.gguf en esta carpeta
-
-https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/blob/main/Phi-3-mini-4k-instruct-q4.gguf

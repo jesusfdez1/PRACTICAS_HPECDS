@@ -1,1 +1,2 @@
 2024-07-18 00:39:55.715519 - Error 404: 'No se ha localizado la operación requerida.' al acceder a la https://www.boe.es/datosabiertos/api/boe/sum3ario/20190101.
+2024-07-18 01:43:33.571546 - Error 404: 'No se ha localizado la operación requerida.' al acceder a la https://www.boe.es/datosabiertos/api/boe/sumariWo/20190101.

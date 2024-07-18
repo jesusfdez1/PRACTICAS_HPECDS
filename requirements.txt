@@ -1,1 +1,7 @@
 requests
+chroma
+langchain
+langchain_community
+pypdf
+boto3
+chromadb

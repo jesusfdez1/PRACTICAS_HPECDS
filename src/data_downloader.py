@@ -8,17 +8,18 @@ import os
 from datetime import datetime
 from datetime import timedelta
 
-def escribirlog(mensaje):
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    with open(f'{path}/log.txt', 'a') as f:
+PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def escribir_log(mensaje):
+    with open(f'{PATH}/log.txt', 'a') as f:
         f.write(f"{mensaje}\n")
     f.close()
     
-def controladorError(response, url):
+def controlador_error(response, url):
     error = response.status_code
     root = ET.fromstring(response.content)
     error_message = root.find(".//text").text
-    escribirlog(f"{datetime.now()} - Error {error}: '{error_message}' al acceder a la {url}.")
+    escribir_log(f"{datetime.now()} - Error {error}: '{error_message}' al acceder a la {url}.")
 
     if error in [401, 404]:
         sys.exit(f"Error {error}: {error_message} Saliendo del programa...")
@@ -47,7 +48,7 @@ def hacer_request_con_reintento(url, max_intentos=5, delay=350):
             return response
         except requests.exceptions.RequestException as e:
             if response is not None:
-                controladorError(response, url)
+                controlador_error(response, url)
             intentos += 1
             print(f"Reintento {intentos} de {max_intentos} tras error: {e}")
             time.sleep(delay)
@@ -55,32 +56,30 @@ def hacer_request_con_reintento(url, max_intentos=5, delay=350):
 
 
 def procesar_enlaces(enlaces):
-    #Obtener la ruta donde se encuntra este archivo
-    path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     #Crear un directorio para guardar los archivos
     try:
-        os.makedirs(f'{path}/pdfs', exist_ok=True)
+        os.makedirs(f'{PATH}/pdfs', exist_ok=True)
     except OSError:
         print("No se pudo acceder al directorio para guardar los archivos.")
-        escribirlog(f"{datetime.now()} - No se pudo acceder al directorio para guardar los archivos.")
+        escribir_log(f"{datetime.now()} - No se pudo acceder al directorio para guardar los archivos.")
         sys.exit("Saliendo del programa...")
     for enlaceInd in enlaces:
         response = hacer_request_con_reintento(enlaceInd)
         if response is None:
             print(f"No se pudo descargar el archivo {enlaceInd}.")
             #Hacer log de los archivos que no se pudieron descargar
-            escribirlog(f"{datetime.now()} - No se pudo descargar el archivo {enlaceInd}.")
+            escribir_log(f"{datetime.now()} - No se pudo descargar el archivo {enlaceInd}.")
             # Si no se puede descargar el archivo, continuar con el siguiente
             continue
         else:
             # Obtener el nombre del archivo
             filename = enlaceInd.split("/")[-1]
             #Obtener los nombres de los archivos que ya se han descargado para no volver a descargarlos
-            files = os.listdir(f'{path}/pdfs')
+            files = os.listdir(f'{PATH}/pdfs')
             if filename in files:
                 print(f"Archivo {filename} ya descargado.")
             else:
-                with open(f'{path}/pdfs/{filename}', 'wb') as f:
+                with open(f'{PATH}/pdfs/{filename}', 'wb') as f:
                     f.write(response.content)
                 print(f"Archivo {filename} guardado correctamente.")
     
@@ -131,3 +130,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

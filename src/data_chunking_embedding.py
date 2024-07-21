@@ -34,7 +34,7 @@ def cargar_documentos():
 
 def dividir_documentos(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=780, #Tamaño máximo de cada fragmento de texto en 800 caracteres. Si el fragmento es mayor a este tamaño, el texto se dividirá en partes más pequeñas.
+        chunk_size=500, #Tamaño máximo de cada fragmento de texto en 800 caracteres. Si el fragmento es mayor a este tamaño, el texto se dividirá en partes más pequeñas.
         chunk_overlap=90, #Número de caracteres que se superponen entre fragmentos adyacentes. La superposición ayuda a mantener el contexto entre fragmentos adyacentes
         length_function=len,
         is_separator_regex=False,
@@ -43,10 +43,8 @@ def dividir_documentos(documents: list[Document]):
 
 
 def añadir_a_chroma(chunks: list[Document]):
-    # Load the existing database.
-    db = Chroma(
-        persist_directory=CHROMA_PATH, embedding_function=get_embedding_function()
-    )
+    # Carga la base de datos existente.
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embedding_function())
 
     # Calcula los IDs de los fragmentos.
     chunks_with_ids = calcular_chunk_ids(chunks)
@@ -66,34 +64,33 @@ def añadir_a_chroma(chunks: list[Document]):
         print(f"Añadiendo {len(new_chunks)} nuevos documentos a la base de datos...")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
+        
     else:
         print("No hay nuevos documentos para añadir.")
 
 
 def calcular_chunk_ids(chunks):
-
-    # This will create IDs like "pdfs/monopoly.pdf:6:2"
-    # Page Source : Page Number : Chunk Index
-
-    last_page_id = None
-    current_chunk_index = 0
+    # Esto creará IDs como "pdfs/BOE-A-2019-1.pdf:3:0 donde Fuente : Número de página : Chunk Index
+    
+    id_ultima_pagina = None
+    index_actual_chunk = 0
 
     for chunk in chunks:
-        source = chunk.metadata.get("source")
-        page = chunk.metadata.get("page")
-        current_page_id = f"{source}:{page}"
+        fuente = chunk.metadata.get("source")
+        pagina = chunk.metadata.get("page")
+        id_pagina_actual = f"{fuente}:{pagina}"
 
-        # If the page ID is the same as the last one, increment the index.
-        if current_page_id == last_page_id:
-            current_chunk_index += 1
+        # Si el ID de la página es el mismo que el anterior, incrementa el índice.
+        if id_pagina_actual == id_ultima_pagina:
+            index_actual_chunk += 1
         else:
-            current_chunk_index = 0
+            index_actual_chunk = 0
 
-        # Calculate the chunk ID.
-        chunk_id = f"{current_page_id}:{current_chunk_index}"
-        last_page_id = current_page_id
+        # Calcula el ID del chunk.
+        chunk_id = f"{id_pagina_actual}:{index_actual_chunk}"
+        id_ultima_pagina = id_pagina_actual
 
-        # Add it to the page meta-data.
+        # Esto añade el ID del chunk a los metadatos de la página.
         chunk.metadata["id"] = chunk_id
 
     return chunks

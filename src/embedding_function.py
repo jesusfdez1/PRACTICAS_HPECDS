@@ -3,7 +3,8 @@ from langchain_community.embeddings.ollama import OllamaEmbeddings
 
 
 def get_embedding_function():
-    embeddings = OllamaEmbeddings(model="mxbai-embed-large")
+   # embeddings = OllamaEmbeddings(model="mxbai-embed-large")
+    embeddings = OllamaEmbeddings(model="joanfm/jina-embeddings-v2-base-es")
     return embeddings
 
 # embeddings = BedrockEmbeddings( credentials_profile_name="default", region_name="us-east-1")  #Mejores resultados en AWS pero no se puede usar en local

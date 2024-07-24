@@ -1,3 +1,5 @@
 /pdfs
 /log.txt
 /chroma
+/src/webui/node_modules
+/src/webui/.svelte-kit

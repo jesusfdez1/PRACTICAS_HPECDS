@@ -3,24 +3,25 @@ from datetime import timedelta
 from flask import Flask
 from flask import request
 import os
-from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH
+from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH_PDFS
 
 app = Flask(__name__)
 @app.route("/importer", methods=["POST"])
 def import_data():
-    print(PATH)
     files = request.files.getlist("files[]")
-    #Si no existe la carpeta pdfs, se crea
+    # Si no existe la carpeta pdfs, se crea
     try:
-        os.makedirs(f'{PATH}/pdfs', exist_ok=True)
+        os.makedirs(PATH_PDFS, exist_ok=True)
     except OSError:
         print("No se pudo acceder al directorio para guardar los archivos.")
+        return "Internal Server Error", 500
         
     for file in files:
-        file.save(f'{PATH}/pdfs/{file.filename}')
-    return "OK"
-
-
+        try:
+            file.save(f'{PATH_PDFS}/{file.filename}')
+        except:
+            return "Internal Server Error", 500
+    return "OK", 200
 
 if __name__ == "__main__":
     from waitress import serve

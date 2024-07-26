@@ -9,7 +9,7 @@ from datetime import datetime
 from datetime import timedelta
 from flask import Flask
 from flask import request
-from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH
+from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH, PATH_PDFS
 
 app = Flask(__name__)
 
@@ -61,7 +61,7 @@ def hacer_request_con_reintento(url, max_intentos=5, delay=350):
 def procesar_enlaces(enlaces):
     #Crear un directorio para guardar los archivos
     try:
-        os.makedirs(f'{PATH}/pdfs', exist_ok=True)
+        os.makedirs(PATH_PDFS, exist_ok=True)
     except OSError:
         print("No se pudo acceder al directorio para guardar los archivos.")
         escribir_log(f"{datetime.now()} - No se pudo acceder al directorio para guardar los archivos.")
@@ -78,11 +78,11 @@ def procesar_enlaces(enlaces):
             # Obtener el nombre del archivo
             filename = enlaceInd.split("/")[-1]
             #Obtener los nombres de los archivos que ya se han descargado para no volver a descargarlos
-            files = os.listdir(f'{PATH}/pdfs')
+            files = os.listdir(PATH_PDFS)
             if filename in files:
                 print(f"Archivo {filename} ya descargado.")
             else:
-                with open(f'{PATH}/pdfs/{filename}', 'wb') as f:
+                with open(f'{PATH_PDFS}/{filename}', 'wb') as f:
                     f.write(response.content)
                 print(f"Archivo {filename} guardado correctamente.")
 
@@ -95,70 +95,78 @@ def main():
     errors = []
     try:
         dates = validador_fechas(dates)
-        for date in dates:
-                fechaOrigen = datetime.strptime(date["start"], "%Y-%m-%d")
-                fechaFin = datetime.strptime(date["end"], "%Y-%m-%d") if date["end"] else None
-               # procesadorInd(fechaOrigen, fechaFin)
+        for inicio, fin in dates:
+                fechaOrigen = datetime.strptime(str(inicio), "%Y-%m-%d %H:%M:%S")
+                fechaFin = datetime.strptime(str(fin), "%Y-%m-%d %H:%M:%S")
+                print(f"Procesando desde {fechaOrigen} hasta {fechaFin}...")
+                procesadorInd(fechaOrigen, fechaFin)
     except Exception as e:
             # Imprimir la excepción o error en caso de que no se pueda imprimir
             print(f"Error: {e}")
-            escribir_log(f"{datetime.now()} - sError: {e}")
+            escribir_log(f"{datetime.now()} - Error: {e}")
             errors.append(str(e))
     if errors:
         return {"status": "error", "errors": errors}
     
     return {"status": "success"}
 
+def merge_overlapping_dates(dates_check):
+    intervals = []
+
+    # Convertir las fechas de entrada en objetos datetime y crear Intervalos
+    for date in dates_check:
+        start = datetime.strptime(date["start"], "%Y-%m-%d")
+        if "end" in date:
+            end = datetime.strptime(date["end"], "%Y-%m-%d")
+        else:
+            end = start  # Si no se proporciona fecha de fin, considerar como intervalo de un día
+
+        intervals.append((start, end))
+
+    # Ordenar los intervalos por fecha de inicio
+    intervals.sort()
+
+    merged_intervals = []
+    current_start, current_end = intervals[0]
+
+    for interval in intervals[1:]:
+        interval_start, interval_end = interval
+
+        if interval_start <= current_end:  # Hay superposición, fusionar los intervalos
+            current_end = max(current_end, interval_end)
+        else:
+            merged_intervals.append((current_start, current_end))
+            current_start, current_end = interval_start, interval_end
+
+    merged_intervals.append((current_start, current_end))  # Agregar el último intervalo
+
+    return merged_intervals
+
 def validador_fechas(dates):
-    # Convertir las fechas de texto a objetos datetime para facilitar la comparación
+    dates_check = []
+    
     for date in dates:
-        date["start"] = datetime.strptime(date["start"], "%Y-%m-%d").date()
-        date["end"] = datetime.strptime(date["end"], "%Y-%m-%d").date()
+        if "start" not in date:
+            raise ValueError("La fecha de inicio es obligatoria.")
+        elif date["end"] == "":
+            dates_check.append({"start": date["start"], "end": date["start"]})
+        elif date["end"] and date["start"] > date["end"]:
+            raise ValueError("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        elif date["start"] > datetime.now().strftime("%Y-%m-%d"):
+            raise ValueError("La fecha de inicio no puede ser futura.")
+        elif date["end"] and date["end"] > datetime.now().strftime("%Y-%m-%d"):
+            raise ValueError("La fecha de fin no puede ser futura.")
+        else:
+            dates_check.append(date)
 
-    # Ordenar las fechas por el inicio para facilitar la comparación
-    dates.sort(key=lambda x: x["start"])
-
-    i = 0
-    while i < len(dates):
-        date1 = dates[i]
-
-        if not date1["start"] or not date1["end"]:
-            raise ValueError("Las fechas deben tener valores válidos para 'start' y 'end'.")
-
-        j = i + 1
-        while j < len(dates):
-            date2 = dates[j]
-
-            # Verificar si date1 está completamente dentro de date2
-            if date1["start"] >= date2["start"] and date1["end"] <= date2["end"]:
-                # date1 está completamente dentro de date2, eliminar date1
-                dates.pop(i)
-                i -= 1  # Retroceder el índice para revisar la fecha anterior
-                break
-            elif date1["start"] <= date2["start"] and date1["end"] >= date2["end"]:
-                # date2 está completamente dentro de date1, eliminar date2
-                dates.pop(j)
-            else:
-                j += 1
-
-        i += 1
-
-    # Convertir las fechas de nuevo a formato de texto antes de devolver la lista
-    for date in dates:
-        date["start"] = date["start"].strftime("%Y-%m-%d")
-        date["end"] = date["end"].strftime("%Y-%m-%d")
-
-    print(f"Fechas válidas: {dates}")
-    return dates
-
-
+    # Llamamos a la función para combinar las fechas solapadas
+    merged_dates = merge_overlapping_dates(dates_check)
+    return merged_dates
 
 def procesadorInd(fechaOrigen, fechaFin):
     enlaces = {}
     num_hilos=15
-    if not fechaFin:
-        fechaFin = fechaOrigen
-      
+         
     while fechaOrigen <= fechaFin:
         url = f'https://www.boe.es/datosabiertos/api/boe/sumario/{fechaOrigen.strftime("%Y%m%d")}'
         print(f"{url}")

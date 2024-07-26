@@ -9,6 +9,11 @@
 		window.alert('Ingresa como mínimo una fecha de inicio.');
 		return;
 	  }
+
+	  if (endDate < startDate && endDate !== '') {
+		window.alert('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
+		return;
+	  }
 	
 	  dateInputs = [...dateInputs, { start: startDate, end: endDate }];
 	  startDate = '';

@@ -87,7 +87,7 @@
 						<img src="/ollama.png" class=" w-5 invert-[100%] rounded-full" />
 					</div>
 
-					<div class=" self-center font-medium text-sm">Chat nuevo</div>
+					<div class=" self-center font-medium text-sm">Nuevo chat</div>
 				</div>
 
 				<div class="self-center">

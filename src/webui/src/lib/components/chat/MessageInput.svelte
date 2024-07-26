@@ -111,7 +111,7 @@
 				</form>
 
 				<div class="mt-1.5 text-xs text-gray-500 text-center">
-					LLMs can make mistakes. Verify important information.
+					Los LLMs pueden cometer fallos al analizar los documentos del BOE. Verifica la información importante.
 				</div>
 			</div>
 		</div>

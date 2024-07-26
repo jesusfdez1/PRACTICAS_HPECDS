@@ -7,8 +7,11 @@ import re
 import os
 from datetime import datetime
 from datetime import timedelta
+from flask import Flask
+from flask import request
+from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH
 
-PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app = Flask(__name__)
 
 def escribir_log(mensaje):
     with open(f'{PATH}/log.txt', 'a') as f:
@@ -82,24 +85,80 @@ def procesar_enlaces(enlaces):
                 with open(f'{PATH}/pdfs/{filename}', 'wb') as f:
                     f.write(response.content)
                 print(f"Archivo {filename} guardado correctamente.")
-    
+
+@app.route("/downloader", methods=["POST"])
 def main():
-    # Inicialización de variables
+    # Capturar json e imprimir
+    #Enviar que se ha recibido la petición correctamente al cliente 200    
+    data = request.get_json()
+    dates = data["dates"]
+    errors = []
+    try:
+        dates = validador_fechas(dates)
+        for date in dates:
+                fechaOrigen = datetime.strptime(date["start"], "%Y-%m-%d")
+                fechaFin = datetime.strptime(date["end"], "%Y-%m-%d") if date["end"] else None
+               # procesadorInd(fechaOrigen, fechaFin)
+    except Exception as e:
+            # Imprimir la excepción o error en caso de que no se pueda imprimir
+            print(f"Error: {e}")
+            escribir_log(f"{datetime.now()} - sError: {e}")
+            errors.append(str(e))
+    if errors:
+        return {"status": "error", "errors": errors}
+    
+    return {"status": "success"}
+
+def validador_fechas(dates):
+    # Convertir las fechas de texto a objetos datetime para facilitar la comparación
+    for date in dates:
+        date["start"] = datetime.strptime(date["start"], "%Y-%m-%d").date()
+        date["end"] = datetime.strptime(date["end"], "%Y-%m-%d").date()
+
+    # Ordenar las fechas por el inicio para facilitar la comparación
+    dates.sort(key=lambda x: x["start"])
+
+    i = 0
+    while i < len(dates):
+        date1 = dates[i]
+
+        if not date1["start"] or not date1["end"]:
+            raise ValueError("Las fechas deben tener valores válidos para 'start' y 'end'.")
+
+        j = i + 1
+        while j < len(dates):
+            date2 = dates[j]
+
+            # Verificar si date1 está completamente dentro de date2
+            if date1["start"] >= date2["start"] and date1["end"] <= date2["end"]:
+                # date1 está completamente dentro de date2, eliminar date1
+                dates.pop(i)
+                i -= 1  # Retroceder el índice para revisar la fecha anterior
+                break
+            elif date1["start"] <= date2["start"] and date1["end"] >= date2["end"]:
+                # date2 está completamente dentro de date1, eliminar date2
+                dates.pop(j)
+            else:
+                j += 1
+
+        i += 1
+
+    # Convertir las fechas de nuevo a formato de texto antes de devolver la lista
+    for date in dates:
+        date["start"] = date["start"].strftime("%Y-%m-%d")
+        date["end"] = date["end"].strftime("%Y-%m-%d")
+
+    print(f"Fechas válidas: {dates}")
+    return dates
+
+
+
+def procesadorInd(fechaOrigen, fechaFin):
     enlaces = {}
     num_hilos=15
-    fechaOrigen = datetime(2019, 1, 1)
-    fechaFin = datetime(2019, 1, 2)
-
-    if not (fechaOrigen or fechaFin):
-        print("Las fechas no son válidas. Corrija lo que esté mal.")
-        fechaOrigen = datetime(2019, 1, 1)
-        fechaFin = datetime(2019, 1, 1)
-
-    while fechaFin < fechaOrigen:
-        print("La fecha de fin debe ser mayor o igual a la fecha de comienzo")
-        fechaOrigen = datetime(2019, 1, 1)
-        fechaFin = datetime(2019, 1, 1)
-    
+    if not fechaFin:
+        fechaFin = fechaOrigen
+      
     while fechaOrigen <= fechaFin:
         url = f'https://www.boe.es/datosabiertos/api/boe/sumario/{fechaOrigen.strftime("%Y%m%d")}'
         print(f"{url}")
@@ -129,5 +188,11 @@ def main():
             t.join()
 
 if __name__ == "__main__":
-    main()
+    from waitress import serve
+    from flask_cors import CORS
+    CORS(app)    
+    serve(app, host=API_MICROSERVICES_BASE_URL, port=API_MICROSERVICES_PORT)
+
+
+    
     

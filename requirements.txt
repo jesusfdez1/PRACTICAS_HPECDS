@@ -6,3 +6,5 @@ pypdf
 boto3
 chromadb
 flask
+waitress
+flask_cors

@@ -144,7 +144,6 @@
 				{#if selectedTab === "general"}
 					<div class="flex flex-col h-full justify-between text-sm">
 						<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
-							<div class=" text-sm font-medium">Ajustes de la interfaz</div>
 							<General />
 						</div>					
 					</div>

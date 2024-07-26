@@ -1,41 +1,50 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+
     let importFileInputElement: HTMLInputElement;
-    let importFiles: FileList;
     let importedFiles: { id: number, name: string }[] = [];
     let nextFileId = 1;
-
+    let importFiles: File[] = []; // Cambia a un array estándar de File
+    
     function handleFileChange(event: Event) {
-        const input = event.target as HTMLInputElement;
-        importFiles = input.files as FileList;
-        updateFileNames();
-    }
+    const input = event.target as HTMLInputElement;
+    importFiles = input.files ? Array.from(input.files) : [];
 
-    async function handleSubmit() {
+    // Actualizar la lista de nombres de archivos importados
+    updateFileNames();
+}
+
+async function handleSubmit() {
     if (importFiles && importFiles.length > 0) {
         const formData = new FormData();
-        for (let i = 0; i < importFiles.length; i++) {
-            formData.append('files[]', importFiles[i]);
-        }
+        importFiles.forEach(file => {
+            formData.append('files[]', file);
+        });
 
         try {
-            const response = await fetch('url_del_servidor', {
+            const response = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/importer', {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
                 console.log('Archivos subidos correctamente.');
-                // Puedes manejar aquí la respuesta del servidor si es necesario
+                window.alert('Archivos subidos correctamente.');
+                // Limpiar la lista después de la subida exitosa si es necesario
+                importedFiles = [];
+                importFiles = [];
             } else {
                 console.error('Error al subir archivos al servidor.');
+                window.alert('Error al subir archivos al servidor.');
             }
         } catch (error) {
             console.error('Error en la solicitud:', error);
+            window.alert('Error en la solicitud.');
         }
+    } else {
+        window.alert('Debe seleccionar al menos un archivo para enviar.');
     }
-
-    importFiles = new FileList();
 }
 
 
@@ -57,15 +66,19 @@
     }
 
     function removeFile(idToRemove: number) {
-        importedFiles = importedFiles.filter(file => file.id !== idToRemove);
-    }
+    // Eliminar el archivo de importedFiles
+    importedFiles = importedFiles.filter(file => file.id !== idToRemove);
+    // Actualizar importFiles para reflejar solo los archivos que aún están presentes en importedFiles
+    importFiles = importFiles.filter(file => importedFiles.some(f => f.name === file.name));
+}
+
 </script>
 
 <div class="flex flex-col">
     <div class="flex">
         <input bind:this={importFileInputElement} type="file" accept=".pdf" multiple hidden 
                on:change={handleFileChange}/>
-        <button class="flex rounded-md py-3 px-3.5 w-full hover:bg-gray-900 transition"
+        <button class="px-2.5 py-2.5 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition bg-gray-200 dark:bg-gray-700 s--7fsHGLC475o"
                 on:click={() => importFileInputElement.click()}>
             <div class="self-center mr-3">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

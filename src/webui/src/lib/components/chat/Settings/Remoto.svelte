@@ -1,65 +1,67 @@
 <script lang="ts">
-  
-	let dateInputs: { start: string, end: string }[] = []; // Array para almacenar las fechas ingresadas por el usuario
-	let startDate = ''; // Variable para el inicio de un rango de fechas
-	let endDate = ''; // Variable para el fin de un rango de fechas
-  
-	// Función para agregar una nueva entrada de fecha al array
+	import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+	let dateInputs: { start: string, end: string }[] = [];
+	let startDate = '';
+	let endDate = '';
+	
 	function addDateInput() {
 	  if (startDate === '') {
-		alert('Ingresa como mínimo una fecha de inicio.');
+		window.alert('Ingresa como mínimo una fecha de inicio.');
 		return;
 	  }
-  
+	
 	  dateInputs = [...dateInputs, { start: startDate, end: endDate }];
 	  startDate = '';
 	  endDate = '';
 	}
-  
-	// Función para eliminar una entrada de fecha del array
+	
 	function removeDateInput(index: number) {
 	  dateInputs.splice(index, 1);
-	  dateInputs = [...dateInputs]; // Forzar la actualización reactiva del array
+	  dateInputs = [...dateInputs];
 	}
-  
 	
 	async function handleSubmit() {
-	if (dateInputs.length === 0) {
-		alert('Por favor ingresa al menos una fecha.');
+	  if (dateInputs.length === 0) {
+		window.alert('Por favor ingresa al menos una fecha.');
 		return;
 	  }
-
-		const data = {
+	
+	  const data = {
 		dates: dateInputs
-	  	};
-		
-        try {
-            const response = await fetch('url_del_servidor', {
-				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                console.log('Fechas subidos correctamente.');
-                // Puedes manejar aquí la respuesta del servidor si es necesario
-            } else {
-                console.error('Error al enviar las fechas al servidor.');
-            }
-        } catch (error) {
-            console.error('Error en la solicitud:', error);
-        }
+	  };
 	  
-		dateInputs = [];
+	  try {
+		const response = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/downloader', {
+		  method: 'POST',
+		  headers: { 'Content-Type': 'application/json' },
+		  body: JSON.stringify(data)
+		});
+	
+		const errorData = await response.json();
+
+		if (!response.ok) {
+		  if (errorData && errorData.status === 'error' && errorData.errors && errorData.errors.length > 0) {
+			const errorMessage = errorData.errors[0];
+			window.alert(errorMessage); // Mostrar el error como ventana emergente
+		  } else {
+			console.error('Error desconocido en la respuesta:', errorData);
+			window.alert('Se produjo un error al procesar la solicitud.');
+		  }
+		} 
+	  } catch (error) {
+		console.error('Error en la solicitud:', error);
+		window.alert('Se produjo un error al conectar con el servidor.');
+	  }
+	
+	  // Limpiar los inputs después de manejar la respuesta
+	  dateInputs = [];
 	  startDate = '';
 	  endDate = '';
-    }
-
-
+	}
   </script>
   
     <div class="py-0.0"> <!-- No hay necesidad de espacio adicional aquí -->
-	<div class="text-xs font-medium">Seleccionar fechas:</div>
+	<div class="text-xs font-medium">Seleccionar fecha(s):</div>
 	<div class="flex space-x-2 mt-2">
 		<label for="end-date" class="text-xs font-medium">Fecha de inicio</label>
 

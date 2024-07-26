@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { version } from "$app/environment";
     	import {WEB_UI_VERSION } from "$lib/constants";
         import {info} from "$lib/stores";
 </script>

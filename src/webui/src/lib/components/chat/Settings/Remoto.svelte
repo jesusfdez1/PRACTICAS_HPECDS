@@ -42,21 +42,18 @@
 		  body: JSON.stringify(data)
 		});
 	
-		const errorData = await response.json();
 
-		if (!response.ok) {
-		  if (errorData && errorData.status === 'error' && errorData.errors && errorData.errors.length > 0) {
-			const errorMessage = errorData.errors[0];
-			window.alert(errorMessage); // Mostrar el error como ventana emergente
-		  } else {
-			console.error('Error desconocido en la respuesta:', errorData);
-			window.alert('Se produjo un error al procesar la solicitud.');
-		  }
-		} 
-	  } catch (error) {
-		console.error('Error en la solicitud:', error);
-		window.alert('Se produjo un error al conectar con el servidor.');
-	  }
+            if (response.ok) {
+                console.log('Fecha(s) enviada(s) correctamente.');
+				window.alert('Fecha(s) enviada(s) correctamente.');
+            } else {
+                console.error('Error al enviar fecha(s) al servidor.');
+				window.alert('Error al enviar fecha(s) al servidor.');
+            }
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+            window.alert('Error en la solicitud.');
+        }
 	
 	  // Limpiar los inputs después de manejar la respuesta
 	  dateInputs = [];

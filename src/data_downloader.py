@@ -86,8 +86,7 @@ def procesar_enlaces(enlaces):
                     f.write(response.content)
                 print(f"Archivo {filename} guardado correctamente.")
 
-@app.route("/downloader", methods=["POST"])
-def main():
+def receptor_fechas():
     # Capturar json e imprimir
     #Enviar que se ha recibido la petición correctamente al cliente 200    
     data = request.get_json()
@@ -106,13 +105,12 @@ def main():
             escribir_log(f"{datetime.now()} - Error: {e}")
             errors.append(str(e))
     if errors:
-        return {"status": "error", "errors": errors}
-    
-    return {"status": "success"}
+            return "Internal Server Error", 500
+    return "OK", 200
+
 
 def merge_overlapping_dates(dates_check):
     intervals = []
-
     # Convertir las fechas de entrada en objetos datetime y crear Intervalos
     for date in dates_check:
         start = datetime.strptime(date["start"], "%Y-%m-%d")
@@ -194,12 +192,6 @@ def procesadorInd(fechaOrigen, fechaFin):
         # Esperar a que todos los hilos terminen
         for t in threads:
             t.join()
-
-if __name__ == "__main__":
-    from waitress import serve
-    from flask_cors import CORS
-    CORS(app)    
-    serve(app, host=API_MICROSERVICES_BASE_URL, port=API_MICROSERVICES_PORT)
 
 
     

@@ -29,14 +29,14 @@ async function handleSubmit() {
             });
 
             if (response.ok) {
-                console.log('Archivos subidos correctamente.');
-                window.alert('Archivos subidos correctamente.');
+                console.log('Archivo(s) subido(s) correctamente.');
+                window.alert('Archivo(s) subido(s) correctamente.');
                 // Limpiar la lista después de la subida exitosa si es necesario
                 importedFiles = [];
                 importFiles = [];
             } else {
-                console.error('Error al subir archivos al servidor.');
-                window.alert('Error al subir archivos al servidor.');
+                console.error('Error al subir archivo(s) al servidor.');
+                window.alert('Error al subir archivo(s) al servidor.');
             }
         } catch (error) {
             console.error('Error en la solicitud:', error);

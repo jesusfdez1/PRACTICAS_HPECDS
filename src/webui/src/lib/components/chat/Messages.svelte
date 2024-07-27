@@ -18,7 +18,6 @@
 
 	export let bottomPadding = false;
 	export let autoScroll;
-	export let selectedModels;
 	export let history = {};
 	export let messages = [];
 

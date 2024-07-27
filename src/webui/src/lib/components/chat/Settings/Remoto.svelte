@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+	import toast from "svelte-french-toast";
 	let dateInputs: { start: string, end: string }[] = [];
 	let startDate = '';
 	let endDate = '';
 	
 	function addDateInput() {
 	  if (startDate === '') {
-		window.alert('Ingresa como mínimo una fecha de inicio.');
+		toast.error('Ingresa como mínimo una fecha de inicio');
 		return;
 	  }
 
 	  if (endDate < startDate && endDate !== '') {
-		window.alert('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
+		toast.error('La fecha de fin debe ser mayor o igual a la fecha de inicio');
 		return;
 	  }
 	
@@ -27,7 +28,7 @@
 	
 	async function handleSubmit() {
 	  if (dateInputs.length === 0) {
-		window.alert('Por favor ingresa al menos una fecha.');
+		toast.error('Ingresa al menos una fecha');
 		return;
 	  }
 	
@@ -45,14 +46,14 @@
 
             if (response.ok) {
                 console.log('Archivos descargados correctamente.');
-				window.alert('Archivos descargados correctamente.');
+				toast.success('Archivos descargados correctamente');
             } else {
                 console.error('Error al enviar fecha(s) al servidor.');
-				window.alert('Error al enviar fecha(s) al servidor.');
+				toast.error('Error al enviar fecha(s) al servidor');
             }
         } catch (error) {
             console.error('Error en la solicitud:', error);
-            window.alert('Error en la solicitud.');
+			toast.error('Error en la solicitud');
         }
 	
 	  // Limpiar los inputs después de manejar la respuesta

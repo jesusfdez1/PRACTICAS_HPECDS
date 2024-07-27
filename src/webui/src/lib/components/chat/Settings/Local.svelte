@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+	import toast from 'svelte-french-toast';
 
     let importFileInputElement: HTMLInputElement;
     let importedFiles: { id: number, name: string }[] = [];
@@ -30,20 +31,20 @@ async function handleSubmit() {
 
             if (response.ok) {
                 console.log('Archivo(s) subido(s) correctamente.');
-                window.alert('Archivo(s) subido(s) correctamente.');
+                toast.success('Archivo(s) subido(s) correctamente');
                 // Limpiar la lista después de la subida exitosa si es necesario
                 importedFiles = [];
                 importFiles = [];
             } else {
                 console.error('Error al subir archivo(s) al servidor.');
-                window.alert('Error al subir archivo(s) al servidor.');
+                toast.error('Error al subir archivo(s) al servidor');
             }
         } catch (error) {
             console.error('Error en la solicitud:', error);
-            window.alert('Error en la solicitud.');
+            toast.error('Error en la solicitud');
         }
     } else {
-        window.alert('Debe seleccionar al menos un archivo para enviar.');
+        toast.error('Debe seleccionar al menos un archivo para enviar');
     }
 }
 

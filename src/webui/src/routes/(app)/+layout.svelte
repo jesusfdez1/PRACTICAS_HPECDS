@@ -104,16 +104,15 @@
 				if ("detail" in error) {
 					toast.error(error.detail);
 				} else {
-					toast.error("Server connection failed");
+					toast.error("Error de conexión con el servidor");
 				}
-				return null;
+				return { chunkLength: 0, contextLength: 0 };
 			});
 
 		console.log(res);
 
 		//Obtener los valores de chunkLength y contextLength del JSON de la respuesta
 		const { chunkLength, contextLength } = res;
-		
 		return {chunkLength, contextLength};
     };
 
@@ -159,7 +158,7 @@
 	};
 	
 	const setChunkValues = async (chunkLength: any, contextLength: any) => {
-		await chunks.set({ ...$chunks, chunkLength, contextLength });
+		await chunks.set({ ...$chunks, chunkLength, contextLength});
 	};
 
 	onMount(async () => {

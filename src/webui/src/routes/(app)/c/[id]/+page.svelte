@@ -10,7 +10,6 @@
 
 	import MessageInput from '$lib/components/chat/MessageInput.svelte';
 	import Messages from '$lib/components/chat/Messages.svelte';
-	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import { page } from '$app/stores';
 
 	let loaded = false;

@@ -10,13 +10,9 @@
 
 	import MessageInput from "$lib/components/chat/MessageInput.svelte";
 	import Messages from "$lib/components/chat/Messages.svelte";
-	import Navbar from "$lib/components/layout/Navbar.svelte";
-	import { page } from "$app/stores";
 
 	let stopResponseFlag = false;
 	let autoScroll = true;
-
-	let selectedModels = [""];
 
 	let title = "";
 	let prompt = "";
@@ -333,7 +329,6 @@
 					"Content-Type": "text/event-stream"
 				},
 				body: JSON.stringify({
-					model: selectedModels[0],
 					prompt: `Generate a brief 3-5 word title for this question, excluding the term 'title.' Then, please reply with only the title: ${userPrompt}`,
 					stream: false
 				})
@@ -372,12 +367,10 @@
 	}}
 />
 
-<Navbar {title} />
 <div class="min-h-screen w-full flex justify-center">
 	<div class=" py-2.5 flex flex-col justify-between w-full">
 		<div class=" h-full mt-10 mb-32 w-full flex flex-col">
 			<Messages
-				{selectedModels}
 				bind:history
 				bind:autoScroll
 				{sendPrompt}

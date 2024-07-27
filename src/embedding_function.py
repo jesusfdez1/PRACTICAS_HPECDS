@@ -1,7 +1,7 @@
 #from langchain_community.embeddings.bedrock import BedrockEmbeddings #No se puede usar en local. Comentar la siguiente y descomentar esta para usar en AWS
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 from flask import request
-
+from constants import CHUNK_SIZE, CHUNK_OVERLAP
 
 def get_embedding_function():
    # embeddings = OllamaEmbeddings(model="mxbai-embed-large")

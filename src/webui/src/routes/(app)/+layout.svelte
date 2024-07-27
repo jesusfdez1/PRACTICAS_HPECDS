@@ -4,14 +4,13 @@
 	import { onMount, tick } from "svelte";
 	import { goto } from "$app/navigation";
 
-	import { info, showSettings, settings, db, chats, chatId } from "$lib/stores";
+	import { info, showSettings, settings, db, chats, chatId, chunks } from "$lib/stores";
 
 	import SettingsModal from "$lib/components/chat/SettingsModal.svelte";
 	import Sidebar from "$lib/components/layout/Sidebar.svelte";
 	import toast from "svelte-french-toast";
-	import { OLLAMA_API_BASE_URL } from "$lib/constants";
-
-	let requiredOllamaVersion = "0.1.16";
+	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, requiredOllamaVersion } from "$lib/constants";
+	import { json } from "@sveltejs/kit";
 	let loaded = false;
 
 
@@ -88,6 +87,36 @@
 		};
 	};
 
+	const getChunkValues = async () => {
+            const res = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/settings', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+
+            .then(async (res) => {
+				if (!res.ok) throw await res.json();
+				return res.json();
+			})
+			.catch((error) => {
+				console.log(error);
+				if ("detail" in error) {
+					toast.error(error.detail);
+				} else {
+					toast.error("Server connection failed");
+				}
+				return null;
+			});
+
+		console.log(res);
+
+		//Obtener los valores de chunkLength y contextLength del JSON de la respuesta
+		const { chunkLength, contextLength } = res;
+		
+		return {chunkLength, contextLength};
+    };
+
 	const getOllamaVersion = async () => {
 		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/version`, {
 			method: "GET",
@@ -115,7 +144,7 @@
 		return res?.version ?? "0";
 	};
 
-	const setOllamaVersion = async (ollamaVersion) => {
+	const setOllamaVersion = async (ollamaVersion: string) => {
 		await info.set({ ...$info, ollama: { version: ollamaVersion } });
 
 		if (
@@ -125,10 +154,13 @@
 				caseFirst: "upper"
 			}) < 0
 		) {
-			toast.error(`Ollama Version: ${ollamaVersion}`);
+			toast.error(`Versión de Ollama: ${ollamaVersion}`);
 		}
 	};
 	
+	const setChunkValues = async (chunkLength: any, contextLength: any) => {
+		await chunks.set({ ...$chunks, chunkLength, contextLength });
+	};
 
 	onMount(async () => {
 		await settings.set(JSON.parse(localStorage.getItem("settings") ?? "{}"));
@@ -136,6 +168,8 @@
 		await db.set(_db);
 
 		await setOllamaVersion(await getOllamaVersion());
+		const { chunkLength, contextLength } = await getChunkValues();
+		await setChunkValues(chunkLength, contextLength);
 
 		await tick();
 		loaded = true;
@@ -152,18 +186,16 @@
 					<div class="m-auto pb-44 flex flex-col justify-center">
 						<div class="max-w-md">
 							<div class="text-center dark:text-white text-2xl font-medium z-50">
-								Connection Issue or Update Needed
+								Problema de conexión o actualización necesaria
 							</div>
-
-							<div class=" mt-4 text-center text-sm dark:text-gray-200 w-full">
-								Oops! It seems like your Ollama needs a little attention. <br
-									class=" hidden sm:flex"
-								/>We've detected either a connection hiccup or observed that you're using an older
-								version. Ensure you're on the latest Ollama version
-								<br class=" hidden sm:flex" />(version
-								<span class=" dark:text-white font-medium">{requiredOllamaVersion} or higher</span>)
-								or check your connection.
+						
+							<div class="mt-4 text-center text-sm dark:text-gray-200 w-full">
+								Se ha detectado un problema de conexión o el uso de una versión antigua de Ollama.
+								Asegúrate de tener la última versión de Ollama
+								<br class="hidden sm:flex" />(versión
+								<span class="dark:text-white font-medium">{requiredOllamaVersion} o superior</span>) o verifica tu conexión.
 							</div>
+						
 
 							<div class=" mt-6 mx-auto relative group w-fit">
 								<button
@@ -172,14 +204,14 @@
 										await setOllamaVersion(await getOllamaVersion());
 									}}
 								>
-									Check Again
+									Comprobar otra vez
 								</button>
 
 								<button
 									class="text-xs text-center w-full mt-2 text-gray-400 underline"
 									on:click={async () => {
 										await setOllamaVersion(requiredOllamaVersion);
-									}}>Close</button
+									}}>Cerrar</button
 								>
 							</div>
 						</div>

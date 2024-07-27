@@ -1,6 +1,7 @@
 <script lang="ts">
     let theme = "dark";
     import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+    import { chunks } from "$lib/stores";
 
     const toggleTheme = async () => {
         if (theme === "dark") {
@@ -15,51 +16,11 @@
         document.documentElement.classList.add(theme);
     };
 
-    // Función para recibir datos de la API con las longitudes establecidas 
-    const getFromAPI = async () => {
-        try {
-            const url = `${API_MICROSERVICES_BASE_URL}:${API_MICROSERVICES_PORT}/settings`;
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al recibir datos de la API');
-            }
-
-            const responseData = await response.json();
-
-            const chunkLengthElement = document.getElementById('chunkLength');
-            const contextLengthElement = document.getElementById('contextLength');
-
-            if (chunkLengthElement && contextLengthElement) {
-                (chunkLengthElement as HTMLInputElement).value = responseData.chunkLength.toString();
-                (contextLengthElement as HTMLInputElement).value = responseData.contextLength.toString();
-            } else {
-                console.error('Elementos HTML no encontrados para mostrar datos de la API.');
-            }
-
-        } catch (error) {
-            console.error('Error en getFromAPI:', error);
-        }
-    };
-
-    // Llamar a getFromAPI al cargar la página usando load event
-    window.addEventListener('load', () => {
-        console.log('Página completamente cargada');
-        getFromAPI();
-    });
-
-    // Función para enviar datos a la API con las longitudes establecidas por el usuario
+    // Función para enviar a la API con las longitudes establecidas por el usuario
     const sendToAPI = async () => {
         const chunkLengthElement = document.getElementById('chunkLength');
         const chunkLength = chunkLengthElement ? parseInt((chunkLengthElement as HTMLInputElement).value) : 0;
-        const contextLengthElement = document.getElementById('contextLength');
-        const contextLength = contextLengthElement ? parseInt((contextLengthElement as HTMLInputElement).value) : 0;
+        const contextLength = parseInt((document.getElementById('contextLength') as HTMLInputElement)?.value);
 
         const data = {
             chunkLength: chunkLength,
@@ -67,7 +28,7 @@
         };
 
         try {
-            const response = await fetch(`${API_MICROSERVICES_BASE_URL}:${API_MICROSERVICES_PORT}/settings`, {
+            const response = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,15 +37,19 @@
             });
 
             if (!response.ok) {
-                throw new Error('Error al enviar datos a la API');
+                window.alert('Error al enviar los datos a la API');
+            } else {
+                window.alert('Datos enviados correctamente');
             }
 
             const responseData = await response.json();
             console.log('Respuesta de la API:', responseData);
         } catch (error) {
-            console.error('Error en sendToAPI:', error);
+            console.error('Error:', error);
         }
     };
+
+
 </script>
 
 <div class="flex flex-col space-y-3">
@@ -114,24 +79,25 @@
             </button>
         </div>
     </div>
-    <hr class=" dark:border-gray-700" />
+	<hr class=" dark:border-gray-700" />
 
     <div class="text-sm font-medium">Ajustes del procesamiento de documentos</div>
 
     <!-- Campos para la longitud de chunking y de contexto -->
     <div class="flex justify-between items-center">
         <label for="chunkLength" class="text-xs font-medium">Longitud de chunking:</label>
-        <input type="number" id="chunkLength" min="1" step="1" value="700" class="w-1/2 rounded py-1.5 px-4 text-sm dark:text-gray-300 dark:bg-gray-800 outline-none border border-gray-100 dark:border-gray-600">
+        <input type="number" id="chunkLength" min="1" step="1" value={$chunks.chunkLength} class="w-1/2 rounded py-1.5 px-4 text-sm dark:text-gray-300 dark:bg-gray-800 outline-none border border-gray-100 dark:border-gray-600">
     </div>
 
     <div class="flex justify-between items-center">
         <label for="contextLength" class="text-xs font-medium">Longitud de contexto:</label>
-        <input type="number" id="contextLength" min="1" step="1" value="200" class="w-1/2 rounded py-1.5 px-4 text-sm dark:text-gray-300 dark:bg-gray-800 outline-none border border-gray-100 dark:border-gray-600">
+        <input type="number" id="contextLength" min="1" step="1" value={$chunks.contextLength} class="w-1/2 rounded py-1.5 px-4 text-sm dark:text-gray-300 dark:bg-gray-800 outline-none border border-gray-100 dark:border-gray-600">
     </div>
 
-    <div class="py-0.5 flex justify-end">
-        <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded" on:click={() => sendToAPI()}>
-            Enviar
-        </button>
-    </div>
+	<div class="py-0.5 flex justify-end">
+		<button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"   on:click={() => sendToAPI()}
+			>
+		  Enviar
+		</button>
+	  </div>
 </div>

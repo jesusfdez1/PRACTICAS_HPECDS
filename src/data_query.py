@@ -1,26 +1,33 @@
-import argparse
+from flask import request, jsonify
+import json
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 from embedding_function import get_embedding_function
+from constants import CHROMA_PATH, PROMPT_TEMPLATE
 
-CHROMA_PATH = "chroma"
 
-PROMPT_TEMPLATE = """
-Responde la siguiente pregunta basándote únicamente en el siguiente contexto:
-{context}
-
----
-Responde la pregunta basándote en el contexto anterior: {question}
-"""
-
-def main():
-    # Create CLI.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("query_text", type=str, help="The query text.")
-    args = parser.parse_args()
-    query_text = args.query_text
-    query_rag(query_text)
+def procesar_peticion():
+    if request.headers.get('Content-Type') == 'text/event-stream':
+        # Leer los datos de la solicitud directamente
+        data = request.data.decode('utf-8')
+        # Convertir los datos de texto JSON a un diccionario de Python
+        json_data = json.loads(data)
+        
+        # Obtener la lista de mensajes del diccionario
+        messages = json_data.get('messages', [])
+        
+        # Encontrar el contenido del usuario más reciente
+        latest_user_content = None
+        for message in reversed(messages):
+            if message["role"] == "user":
+                latest_user_content = message["content"]
+                break
+        
+        # Imprimir el contenido del usuario más reciente
+        print("Contenido del usuario más reciente:", latest_user_content)
+    
+#query_rag(query_text)
 
 
 def query_rag(query_text: str):
@@ -43,6 +50,3 @@ def query_rag(query_text: str):
     formatted_response = f"Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
-
-if __name__ == "__main__":
-    main()

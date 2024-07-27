@@ -44,8 +44,8 @@
 	
 
             if (response.ok) {
-                console.log('Fecha(s) enviada(s) correctamente.');
-				window.alert('Fecha(s) enviada(s) correctamente.');
+                console.log('Archivos descargados correctamente.');
+				window.alert('Archivos descargados correctamente.');
             } else {
                 console.error('Error al enviar fecha(s) al servidor.');
 				window.alert('Error al enviar fecha(s) al servidor.');

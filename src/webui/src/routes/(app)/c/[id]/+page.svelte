@@ -6,7 +6,7 @@
 	import { tick } from 'svelte';
 	import { convertMessagesToHistory, splitStream } from '$lib/utils';
 	import { goto } from '$app/navigation';
-	import { models, settings, db, chats, chatId } from '$lib/stores';
+	import { settings, db, chats, chatId } from '$lib/stores';
 
 	import MessageInput from '$lib/components/chat/MessageInput.svelte';
 	import Messages from '$lib/components/chat/Messages.svelte';
@@ -18,7 +18,6 @@
 	let autoScroll = true;
 
 	// let chatId = $page.params.id;
-	let selectedModels = [''];
 
 	let title = '';
 	let prompt = '';
@@ -67,7 +66,6 @@
 		if (chat) {
 			console.log(chat);
 
-			selectedModels = (chat?.models ?? undefined) !== undefined ? chat.models : [chat.model ?? ''];
 			history =
 				(chat?.history ?? undefined) !== undefined
 					? chat.history
@@ -135,17 +133,13 @@
 
 	const sendPrompt = async (userPrompt, parentId, _chatId) => {
 		await Promise.all(
-			selectedModels.map(async (model) => {
-				console.log(model);
-				await sendPromptOllama(model, userPrompt, parentId, _chatId);			
-			})
+			await sendPromptOllama(userPrompt, parentId, _chatId)
 		);
 
 		await chats.set(await $db.getChats());
 	};
 
-	const sendPromptOllama = async (model, userPrompt, parentId, _chatId) => {
-		console.log('sendPromptOllama');
+	const sendPromptOllama = async (userPrompt, parentId, _chatId) => {
 		let responseMessageId = uuidv4();
 		let responseMessage = {
 			parentId: parentId,
@@ -189,17 +183,7 @@
 					.map((message) => ({
 						role: message.role,
 						content: message.content
-					})),
-				options: {
-					seed: $settings.seed ?? undefined,
-					temperature: $settings.temperature ?? undefined,
-					repeat_penalty: $settings.repeat_penalty ?? undefined,
-					top_k: $settings.top_k ?? undefined,
-					top_p: $settings.top_p ?? undefined,
-					num_ctx: $settings.num_ctx ?? undefined,
-					...($settings.options ?? {})
-				},
-				format: $settings.requestFormat ?? undefined
+					}))
 			})
 		}).catch((err) => {
 			console.log(err);
@@ -284,17 +268,7 @@
 
 				await $db.updateChatById(_chatId, {
 					title: title === '' ? 'Nuevo chat' : title,
-					models: selectedModels,
 					system: $settings.system ?? undefined,
-					options: {
-						seed: $settings.seed ?? undefined,
-						temperature: $settings.temperature ?? undefined,
-						repeat_penalty: $settings.repeat_penalty ?? undefined,
-						top_k: $settings.top_k ?? undefined,
-						top_p: $settings.top_p ?? undefined,
-						num_ctx: $settings.num_ctx ?? undefined,
-						...($settings.options ?? {})
-					},
 					messages: messages,
 					history: history
 				});
@@ -337,9 +311,7 @@
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		console.log('submitPrompt', _chatId);
 
-		if (selectedModels.includes('')) {
-			toast.error('Model not selected');
-		} else if (messages.length != 0 && messages.at(-1).done != true) {
+		if (messages.length != 0 && messages.at(-1).done != true) {
 			console.log('wait');
 		} else {
 			document.getElementById('chat-textarea').style.height = '';
@@ -365,17 +337,7 @@
 				await $db.createNewChat({
 					id: _chatId,
 					title: 'Nuevo chat',
-					models: selectedModels,
 					system: $settings.system ?? undefined,
-					options: {
-						seed: $settings.seed ?? undefined,
-						temperature: $settings.temperature ?? undefined,
-						repeat_penalty: $settings.repeat_penalty ?? undefined,
-						top_k: $settings.top_k ?? undefined,
-						top_p: $settings.top_p ?? undefined,
-						num_ctx: $settings.num_ctx ?? undefined,
-						...($settings.options ?? {})
-					},
 					messages: messages,
 					history: history
 				});
@@ -422,7 +384,6 @@
 					...($settings.authHeader && { Authorization: $settings.authHeader })
 				},
 				body: JSON.stringify({
-					model: selectedModels[0],
 					prompt: `Generate a brief 3-5 word title for this question, excluding the term 'title.' Then, please reply with only the title: ${userPrompt}`,
 					stream: false
 				})
@@ -467,7 +428,6 @@
 
 			<div class=" h-full mt-10 mb-32 w-full flex flex-col">
 				<Messages
-					{selectedModels}
 					bind:history
 					bind:autoScroll
 					{sendPrompt}

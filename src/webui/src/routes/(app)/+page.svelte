@@ -2,7 +2,7 @@
 	import { v4 as uuidv4 } from "uuid";
 	import toast from "svelte-french-toast";
 
-	import { OLLAMA_API_BASE_URL } from "$lib/constants";
+	import { API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from "$lib/constants";
 	import { onMount, tick } from "svelte";
 	import { splitStream } from "$lib/utils";
 
@@ -21,8 +21,11 @@
 	let title = "";
 	let prompt = "";
 
-	let messages = [];
-	let history = {
+	let messages: { [key: string]: any }[] = [];
+	let history: {
+			messages: { [key: string]: any },
+			currentId: string | null
+		} = {
 		messages: {},
 		currentId: null
 	};
@@ -64,10 +67,7 @@
 			messages: {},
 			currentId: null
 		};
-		selectedModels = $page.url.searchParams.get("models")
-			? $page.url.searchParams.get("models")?.split(",")
-			: $settings.models ?? [""];
-
+		
 		let _settings = JSON.parse(localStorage.getItem("settings") ?? "{}");
 		console.log(_settings);
 		settings.set({
@@ -114,17 +114,12 @@
 	// Ollama functions
 	//////////////////////////
 
-	const sendPrompt = async (userPrompt, parentId, _chatId) => {
-		await Promise.all(
-			selectedModels.map(async (model) => {
-				await sendPromptOllama(model, userPrompt, parentId, _chatId);
-			})
-		);
-
+	const sendPrompt = async (userPrompt: string, parentId:string, _chatId:string) => {
+		await sendPromptOllama(userPrompt, parentId, _chatId);
 		await chats.set(await $db.getChats());
 	};
 
-	const sendPromptOllama = async (model, userPrompt, parentId, _chatId) => {
+	const sendPromptOllama = async (userPrompt: string, parentId:string, _chatId:string) => {
 		console.log("sendPromptOllama");
 		let responseMessageId = uuidv4();
 		let responseMessage = {
@@ -133,7 +128,6 @@
 			childrenIds: [],
 			role: "assistant",
 			content: "",
-			model: model
 		};
 
 		history.messages[responseMessageId] = responseMessage;
@@ -148,27 +142,14 @@
 		await tick();
 		window.scrollTo({ top: document.body.scrollHeight });
 
-		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/chat`, {
+		const res = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/chat', {
 			method: "POST",
-			headers: {
-				"Content-Type": "text/event-stream"
-			},
+			headers: { 'Content-Type': 'text/event-stream' },
 			body: JSON.stringify({
-				model: model,
 				messages: messages.map((message) => ({
 					role: message.role,
 					content: message.content
 				})),
-				options: {
-					seed: $settings.seed ?? undefined,
-					temperature: $settings.temperature ?? undefined,
-					repeat_penalty: $settings.repeat_penalty ?? undefined,
-					top_k: $settings.top_k ?? undefined,
-					top_p: $settings.top_p ?? undefined,
-					num_ctx: $settings.num_ctx ?? undefined,
-					...($settings.options ?? {})
-				},
-				format: $settings.requestFormat ?? undefined
 			})
 		}).catch((err) => {
 			console.log(err);
@@ -243,16 +224,6 @@
 
 				await $db.updateChatById(_chatId, {
 					title: title === "" ? "Nuevo chat" : title,
-					models: selectedModels,
-					options: {
-						seed: $settings.seed ?? undefined,
-						temperature: $settings.temperature ?? undefined,
-						repeat_penalty: $settings.repeat_penalty ?? undefined,
-						top_k: $settings.top_k ?? undefined,
-						top_p: $settings.top_p ?? undefined,
-						num_ctx: $settings.num_ctx ?? undefined,
-						...($settings.options ?? {})
-					},
 					messages: messages,
 					history: history
 				});
@@ -318,16 +289,6 @@
 				await $db.createNewChat({
 					id: _chatId,
 					title: "Nuevo chat",
-					models: selectedModels,
-					options: {
-						seed: $settings.seed ?? undefined,
-						temperature: $settings.temperature ?? undefined,
-						repeat_penalty: $settings.repeat_penalty ?? undefined,
-						top_k: $settings.top_k ?? undefined,
-						top_p: $settings.top_p ?? undefined,
-						num_ctx: $settings.num_ctx ?? undefined,
-						...($settings.options ?? {})
-					},
 					messages: messages,
 					history: history
 				});

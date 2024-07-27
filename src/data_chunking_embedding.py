@@ -6,11 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores import Chroma
-
-
-CHROMA_PATH = "chroma"
-DATA_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/pdfs"
-
+from constants import CHROMA_PATH, PATH_PDFS, CHUNK_SIZE, CHUNK_OVERLAP
 
 def main():
     # Comprueba si la base de datos debe limpiarse (usando el indicador --clear).
@@ -28,14 +24,14 @@ def main():
 
 
 def cargar_documentos():
-    document_loader = PyPDFDirectoryLoader(DATA_PATH)
+    document_loader = PyPDFDirectoryLoader(PATH_PDFS)
     return document_loader.load()
 
 
 def dividir_documentos(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500, #Tamaño máximo de cada fragmento de texto en 800 caracteres. Si el fragmento es mayor a este tamaño, el texto se dividirá en partes más pequeñas.
-        chunk_overlap=90, #Número de caracteres que se superponen entre fragmentos adyacentes. La superposición ayuda a mantener el contexto entre fragmentos adyacentes
+        chunk_size=CHUNK_SIZE, #Tamaño máximo de cada fragmento de texto en 800 caracteres. Si el fragmento es mayor a este tamaño, el texto se dividirá en partes más pequeñas.
+        chunk_overlap=CHUNK_OVERLAP, #Número de caracteres que se superponen entre fragmentos adyacentes. La superposición ayuda a mantener el contexto entre fragmentos adyacentes
         length_function=len,
         is_separator_regex=False,
     )

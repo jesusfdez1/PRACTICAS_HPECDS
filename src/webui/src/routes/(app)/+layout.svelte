@@ -4,7 +4,7 @@
 	import { onMount, tick } from "svelte";
 	import { goto } from "$app/navigation";
 
-	import { info, showSettings, settings, models, db, chats, chatId } from "$lib/stores";
+	import { info, showSettings, settings, db, chats, chatId } from "$lib/stores";
 
 	import SettingsModal from "$lib/components/chat/SettingsModal.svelte";
 	import Sidebar from "$lib/components/layout/Sidebar.svelte";
@@ -14,33 +14,6 @@
 	let requiredOllamaVersion = "0.1.16";
 	let loaded = false;
 
-	const getModels = async () => {
-		let models = [];
-		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/tags`, {
-			method: "GET",
-			headers: {
-				Accept: "application/json",
-				"Content-Type": "application/json"
-			}
-		})
-			.then(async (res) => {
-				if (!res.ok) throw await res.json();
-				return res.json();
-			})
-			.catch((error) => {
-				console.log(error);
-				if ("detail" in error) {
-					toast.error(error.detail);
-				} else {
-					toast.error("Server connection failed");
-				}
-				return null;
-			});
-		console.log(res);
-		models.push(...(res?.models ?? []));
-
-		return models;
-	};
 
 	const getDB = async () => {
 		const DB = await openDB("Chats", 1, {
@@ -155,12 +128,10 @@
 			toast.error(`Ollama Version: ${ollamaVersion}`);
 		}
 	};
+	
 
 	onMount(async () => {
 		await settings.set(JSON.parse(localStorage.getItem("settings") ?? "{}"));
-
-		await models.set(await getModels());
-
 		let _db = await getDB();
 		await db.set(_db);
 

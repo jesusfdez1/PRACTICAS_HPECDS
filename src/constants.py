@@ -13,6 +13,9 @@ API_MICROSERVICES_PORT = 3001
 CHUNK_SIZE=500
 CHUNK_OVERLAP=90
 
+
+NUM_HILOS=8
+
 # CONSTANTES DE PROMPT
 PROMPT_TEMPLATE = """
 Responde la siguiente pregunta basándote únicamente en el siguiente contexto:

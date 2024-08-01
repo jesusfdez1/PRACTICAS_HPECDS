@@ -133,7 +133,7 @@
 				if ("detail" in error) {
 					toast.error(error.detail);
 				} else {
-					toast.error("Server connection failed");
+					toast.error("Fallo en la conexión con el servidor al consultar la versión de Ollama");
 				}
 				return null;
 			});
@@ -153,7 +153,6 @@
 				caseFirst: "upper"
 			}) < 0
 		) {
-			toast.error(`Versión de Ollama: ${ollamaVersion}`);
 		}
 	};
 	

@@ -26,8 +26,9 @@ def procesar_peticion():
         
         # Imprimir el contenido del usuario más reciente
         print("Contenido del usuario más reciente:", latest_user_content)
-    
-#query_rag(query_text)
+        #query_rag(query_text)
+        generate_response(latest_user_content)
+    return 
 
 
 def query_rag(query_text: str):
@@ -50,3 +51,8 @@ def query_rag(query_text: str):
     formatted_response = f"Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
+
+def generate_response(query_text: str):
+    #response_text = query_rag(query_text)
+    
+    return jsonify({"response": response_text})

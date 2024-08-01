@@ -1,7 +1,7 @@
 from flask import Flask
 from waitress import serve
 from flask_cors import CORS
-from data_importer import import_data
+from data_importer import import_data, data_dates
 from data_downloader import receptor_fechas
 from data_query import procesar_peticion
 from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT
@@ -16,6 +16,7 @@ app.route("/downloader", methods=["POST"])(receptor_fechas)
 app.route("/chat", methods=["POST"])(procesar_peticion)
 app.route("/settings", methods=["POST"])(set_chunk_values)
 app.route("/settings", methods=["GET"])(get_chunk_values)
+app.route("/dates", methods=["GET"])(data_dates)
 
 if __name__ == "__main__":
     # Ejecutar la aplicación con Waitress en la dirección y puerto especificados

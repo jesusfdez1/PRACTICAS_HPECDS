@@ -284,12 +284,12 @@
 					responseMessage.content = error.error;
 				}
 			} else {
-				toast.error(`Uh-oh! There was an issue connecting to Ollama.`);
-				responseMessage.content = `Uh-oh! There was an issue connecting to Ollama.`;
+				toast.error(`¡Uh-oh! Hubo un problema al realizar la consulta al LLM`);
+				responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
 			}
 
 			responseMessage.error = true;
-			responseMessage.content = `Uh-oh! There was an issue connecting to Ollama.`;
+			responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
 			responseMessage.done = true;
 			messages = messages;
 		}

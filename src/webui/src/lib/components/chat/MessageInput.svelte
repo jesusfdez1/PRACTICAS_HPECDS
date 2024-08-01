@@ -37,6 +37,16 @@
 	</div>
 	<div class="bg-white dark:bg-gray-800">
 		<div class="max-w-3xl px-2.5 -mb-0.5 mx-auto inset-x-0">
+			<!-- Selector de números -->
+			<select id="number-select" class="w-full rounded py-2 px-4 text-sm border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100"	style="width: 300px; border-radius: 0.875rem;">
+				<option value="" style="margin: 0 30%;" disabled selected hidden>Seleccionar fecha del documento</option>
+				<option value="1" style="margin: 0 30%;">1</option>
+				<option value="2" style="margin: 0 30%;">2</option>
+				<option value="3" style="margin: 0 30%;">3</option>
+				<option value="4" style="margin: 0 30%;">4</option>
+				<option value="5" style="margin: 0 30%;">5</option>
+		</select>
+		<div class="mt-2"></div>
 			<div class="bg-gradient-to-t from-white dark:from-gray-800 from-40% pb-2">
 				<form
 					class=" flex flex-col relative w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100"
@@ -44,10 +54,11 @@
 						submitPrompt(prompt);
 					}}
 				>
-					<div class=" flex">
-						<textarea
+				
+					<div class="flex">
+					<textarea
 							id="chat-textarea"
-							class=" dark:bg-gray-800 dark:text-gray-100 outline-none w-full py-3 px-2 pl-4 rounded-xl resize-none"
+							class="dark:bg-gray-800 dark:text-gray-100 outline-none w-full py-3 px-2 pl-4 rounded-xl resize-none"
 							placeholder="Enviar un mensaje"
 							bind:value={prompt}
 							on:keypress={(e) => {
@@ -63,7 +74,7 @@
 								e.target.style.height = "";
 								e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
 							}}
-						/>
+						></textarea>
 
 						<div class="self-end mb-2 flex space-x-0.5 mr-2">
 							{#if messages.length == 0 || messages.at(-1).done == true}

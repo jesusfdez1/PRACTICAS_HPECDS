@@ -25,16 +25,18 @@ def controlador_error(response, url):
     escribir_log(f"{datetime.now()} - Error {error}: '{error_message}' al acceder a la {url}.")
 
     if error in [401, 404]:
-        sys.exit(f"Error {error}: {error_message} Saliendo del programa...")
+        print(f"Error {error}: {error_message}")
+        return error
     elif error == 403:
         sys.exit(f"Error {error}: Acceso no autorizado. Saliendo del programa...")
     elif error in [500, 501, 502, 503]:
         wait_time = 300  # 5 minutos
         print(f"Error {error}: Problema del servidor. Esperando {wait_time / 60} minutos antes de reintentar...")
         time.sleep(wait_time)
+        return error
     else:
         sys.exit(f"Error inesperado: {error}: {error_message}. Saliendo del programa...")
-        
+
 def hacer_request_con_reintento(url, max_intentos=5, delay=350):
     intentos = 0
     response = None  # Inicializar response con None para evitar errores de que no está definido
@@ -51,7 +53,9 @@ def hacer_request_con_reintento(url, max_intentos=5, delay=350):
             return response
         except requests.exceptions.RequestException as e:
             if response is not None:
-                controlador_error(response, url)
+                error= controlador_error(response, url)
+                if error in [401, 404]:
+                    return error
             intentos += 1
             print(f"Reintento {intentos} de {max_intentos} tras error: {e}")
             time.sleep(delay)
@@ -104,8 +108,8 @@ def receptor_fechas():
             print(f"Error: {e}")
             escribir_log(f"{datetime.now()} - Error: {e}")
             errors.append(str(e))
-    if errors:
-            return "Internal Server Error", 500
+            if errors:
+                    return "Internal Server Error", 500
     return "OK", 200
 
 
@@ -169,9 +173,11 @@ def procesadorInd(fechaOrigen, fechaFin):
         url = f'https://www.boe.es/datosabiertos/api/boe/sumario/{fechaOrigen.strftime("%Y%m%d")}'
         print(f"{url}")
         response = hacer_request_con_reintento(url)
-        if response is None:
-            print("No se encontraron documentos. Saliendo del programa...")
-            break
+        if response in [401, 404]:
+            print(f"El enlace {url} no existe. Pasando al siguiente enlace...")
+            #Ir a la siguiente posición en el bucle while
+            fechaOrigen += timedelta(days=1)
+            continue
         else:
             # Poner de regex para obtener los enlaces (?<=>)https:\/\/[\w.\/-]+\.pdf(?=<\/url_pdf>)
             enlaces = re.findall(r'(?<=>)https:\/\/[\w.\/-]+\.pdf(?=<\/url_pdf>)', response.text)

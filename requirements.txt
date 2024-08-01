@@ -2,7 +2,7 @@ requests
 chroma
 langchain
 langchain_community
-pypdf
+pymupdf
 chromadb
 flask
 waitress

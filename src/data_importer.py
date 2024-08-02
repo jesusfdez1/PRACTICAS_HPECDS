@@ -20,14 +20,13 @@ def import_data():
         except Exception as e:
             print(f"Error al guardar archivo: {e}")
             return "Internal Server Error", 500
-
     return "OK", 200
 
 def data_dates():
     dates = set()
     # Si no existe la carpeta pdfs, error
     if not os.path.exists(PATH_PDFS):
-        return dates
+        return list(dates)
     
     for file in os.listdir(PATH_PDFS):
         file_path = os.path.join(PATH_PDFS, file)
@@ -53,7 +52,11 @@ def data_dates():
             except Exception as e:
                 print(f"Error al procesar archivo {file}: {e}")
                 pass
-    return sorted(list(dates))
+    formatted_dates = []
+    for date in dates:
+        formatted_date = date.strftime("%d/%m/%Y")
+        formatted_dates.append(formatted_date)
+    return sorted(formatted_dates)
 
 def obtener_fecha_desde_texto(texto):
     patron_fecha = r'(?P<dia_semana>\w+)\s+(?P<dia>\d{1,2})\s+de\s+(?P<mes>\w+)\s+de\s+(?P<anio>\d{4})\s*'

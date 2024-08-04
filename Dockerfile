@@ -1,19 +1,18 @@
 FROM python:3.12.4
+FROM node:14
 
-# We need to set the host to 0.0.0.0 to allow outside access
-ENV HOST 0.0.0.0
+COPY . /
 
 WORKDIR /
 
 # Every needed package is installed from requirements.txt
-COPY ./requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
+RUN npm install /src/webui/package.json
 
-# Install llama-cpp-python (build with cuda)
-RUN pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade --verbose
+# We need to set the host to 0.0.0.0 to allow outside access
+ENV HOST 0.0.0.0
 
-# Set the working directory
-WORKDIR /app
+CMD [ "python" , "./src/server.py" ]
 
 # Copy needed files
 COPY ./model/model.gguf /app/model.gguf

@@ -75,7 +75,6 @@
 			await settings.set({
 				..._settings,
 				system: chat.system ?? _settings.system,
-				options: chat.options ?? _settings.options
 			});
 			autoScroll = true;
 
@@ -108,9 +107,9 @@
 			try {
 				var successful = document.execCommand('copy');
 				var msg = successful ? 'successful' : 'unsuccessful';
-				console.log('Fallback: Copying text command was ' + msg);
+				console.log("Fallback: El comando de copiar texto fue " + msg);
 			} catch (err) {
-				console.error('Fallback: Oops, unable to copy', err);
+				console.error("Fallback: Oops, no se pudo copiar", err);
 			}
 
 			document.body.removeChild(textArea);
@@ -118,10 +117,10 @@
 		}
 		navigator.clipboard.writeText(text).then(
 			function () {
-				console.log('Async: Copying to clipboard was successful!');
+				console.log("Async: ¡El texto se ha copiado al portapapeles correctamente!");
 			},
 			function (err) {
-				console.error('Async: Could not copy text: ', err);
+				console.error("Async: No se pudo copiar el texto: ", err);
 			}
 		);
 	};
@@ -132,13 +131,14 @@
 
 	const sendPrompt = async (userPrompt, parentId, _chatId) => {
 		await Promise.all(
-			await sendPromptOllama(userPrompt, parentId, _chatId)
+				sendPromptOllama(userPrompt, parentId, _chatId)		
 		);
 
 		await chats.set(await $db.getChats());
 	};
 
 	const sendPromptOllama = async (userPrompt, parentId, _chatId) => {
+		console.log('sendPromptOllama');
 		let responseMessageId = uuidv4();
 		let responseMessage = {
 			parentId: parentId,
@@ -146,7 +146,6 @@
 			childrenIds: [],
 			role: 'assistant',
 			content: '',
-			model: model
 		};
 
 		history.messages[responseMessageId] = responseMessage;
@@ -182,7 +181,8 @@
 					.map((message) => ({
 						role: message.role,
 						content: message.content
-					}))
+					})),
+				format: $settings.requestFormat ?? undefined
 			})
 		}).catch((err) => {
 			console.log(err);
@@ -266,7 +266,7 @@
 				}
 
 				await $db.updateChatById(_chatId, {
-					title: title === '' ? 'Nuevo chat' : title,
+					title: title === '' ? 'Chat nuevo' : title,
 					system: $settings.system ?? undefined,
 					messages: messages,
 					history: history
@@ -284,12 +284,12 @@
 					responseMessage.content = error.error;
 				}
 			} else {
-				toast.error(`¡Uh-oh! Hubo un problema al realizar la consulta al LLM`);
-				responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
+				toast.error(`Uh-oh! There was an issue connecting to Ollama.`);
+				responseMessage.content = `Uh-oh! There was an issue connecting to Ollama.`;
 			}
 
 			responseMessage.error = true;
-			responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
+			responseMessage.content = `Uh-oh! There was an issue connecting to Ollama.`;
 			responseMessage.done = true;
 			messages = messages;
 		}
@@ -309,10 +309,6 @@
 	const submitPrompt = async (userPrompt) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		console.log('submitPrompt', _chatId);
-
-		if (messages.length != 0 && messages.at(-1).done != true) {
-			console.log('wait');
-		} else {
 			document.getElementById('chat-textarea').style.height = '';
 
 			let userMessageId = uuidv4();
@@ -335,7 +331,7 @@
 			if (messages.length == 1) {
 				await $db.createNewChat({
 					id: _chatId,
-					title: 'Nuevo chat',
+					title: 'New Chat',
 					system: $settings.system ?? undefined,
 					messages: messages,
 					history: history
@@ -349,7 +345,6 @@
 			}, 50);
 
 			await sendPrompt(userPrompt, userMessageId, _chatId);
-		}
 	};
 
 	const stopResponse = () => {
@@ -400,7 +395,7 @@
 				});
 
 			if (res) {
-				await setChatTitle(_chatId, res.response === '' ? 'Nuevo chat' : res.response);
+				await setChatTitle(_chatId, res.response === '' ? 'Chat nuevo' : res.response);
 			}
 		} else {
 			await setChatTitle(_chatId, `${userPrompt}`);
@@ -424,10 +419,13 @@
 {#if loaded}
 	<div class="min-h-screen w-full flex justify-center">
 		<div class=" py-2.5 flex flex-col justify-between w-full">
+			<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10">
+			</div>
 
 			<div class=" h-full mt-10 mb-32 w-full flex flex-col">
 				<Messages
 					bind:history
+					bind:messages
 					bind:autoScroll
 					{sendPrompt}
 					{regenerateResponse}
@@ -438,6 +436,7 @@
 		<MessageInput
 			bind:prompt
 			bind:autoScroll
+			{messages}
 			{submitPrompt}
 			{stopResponse}
 		/>

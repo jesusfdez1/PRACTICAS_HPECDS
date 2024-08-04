@@ -2,7 +2,7 @@
 	import { v4 as uuidv4 } from "uuid";
 	import toast from "svelte-french-toast";
 
-	import { API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from "$lib/constants";
+	import { OLLAMA_API_BASE_URL } from "$lib/constants";
 	import { onMount, tick } from "svelte";
 	import { splitStream } from "$lib/utils";
 
@@ -10,18 +10,17 @@
 
 	import MessageInput from "$lib/components/chat/MessageInput.svelte";
 	import Messages from "$lib/components/chat/Messages.svelte";
+	import { page } from "$app/stores";
 
 	let stopResponseFlag = false;
 	let autoScroll = true;
 
+
 	let title = "";
 	let prompt = "";
 
-	let messages: { [key: string]: any }[] = [];
-	let history: {
-			messages: { [key: string]: any },
-			currentId: string | null
-		} = {
+	let messages = [];
+	let history = {
 		messages: {},
 		currentId: null
 	};
@@ -63,7 +62,7 @@
 			messages: {},
 			currentId: null
 		};
-		
+
 		let _settings = JSON.parse(localStorage.getItem("settings") ?? "{}");
 		console.log(_settings);
 		settings.set({
@@ -88,9 +87,9 @@
 			try {
 				var successful = document.execCommand("copy");
 				var msg = successful ? "successful" : "unsuccessful";
-				console.log("Fallback: Copying text command was " + msg);
+				console.log("Fallback: El comando de copiar texto fue " + msg);
 			} catch (err) {
-				console.error("Fallback: Oops, unable to copy", err);
+				console.error("Fallback: Oops, no se pudo copiar", err);
 			}
 
 			document.body.removeChild(textArea);
@@ -98,10 +97,10 @@
 		}
 		navigator.clipboard.writeText(text).then(
 			function () {
-				console.log("Async: Copying to clipboard was successful!");
+				console.log("Async: ¡El texto se ha copiado al portapapeles correctamente!");
 			},
 			function (err) {
-				console.error("Async: Could not copy text: ", err);
+				console.error("Async: No se pudo copiar el texto: ", err);
 			}
 		);
 	};
@@ -110,12 +109,15 @@
 	// Ollama functions
 	//////////////////////////
 
-	const sendPrompt = async (userPrompt: string, parentId:string, _chatId:string) => {
-		await sendPromptOllama(userPrompt, parentId, _chatId);
+	const sendPrompt = async (userPrompt, parentId, _chatId) => {
+		await Promise.all(
+				await sendPromptOllama(userPrompt, parentId, _chatId)
+		);
+
 		await chats.set(await $db.getChats());
 	};
 
-	const sendPromptOllama = async (userPrompt: string, parentId:string, _chatId:string) => {
+	const sendPromptOllama = async (userPrompt, parentId, _chatId) => {
 		console.log("sendPromptOllama");
 		let responseMessageId = uuidv4();
 		let responseMessage = {
@@ -138,14 +140,18 @@
 		await tick();
 		window.scrollTo({ top: document.body.scrollHeight });
 
-		const res = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/chat', {
+		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/chat`, {
 			method: "POST",
-			headers: { 'Content-Type': 'text/event-stream' },
+			headers: {
+				"Content-Type": "text/event-stream"
+			},
 			body: JSON.stringify({
+				model: model,
 				messages: messages.map((message) => ({
 					role: message.role,
 					content: message.content
 				})),
+				format: $settings.requestFormat ?? undefined
 			})
 		}).catch((err) => {
 			console.log(err);
@@ -219,7 +225,7 @@
 				}
 
 				await $db.updateChatById(_chatId, {
-					title: title === "" ? "Nuevo chat" : title,
+					title: title === "" ? "Chat nuevo" : title,
 					messages: messages,
 					history: history
 				});
@@ -236,12 +242,12 @@
 					responseMessage.content = error.error;
 				}
 			} else {
-				toast.error(`¡Uh-oh! Hubo un problema al realizar la consulta al LLM`);
-				responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
+				toast.error(`¡Ups! Hubo un problema al conectar con el LLM.`);
+				responseMessage.content = `¡Ups! Hubo un problema al conectar con el LLM.`;
 			}
 
 			responseMessage.error = true;
-			responseMessage.content = `¡Uh-oh! Hubo un problema al realizar la consulta al LLM`;
+			responseMessage.content = `¡Ups! Hubo un problema al conectar con el LLM.`;
 			responseMessage.done = true;
 			messages = messages;
 		}
@@ -261,7 +267,6 @@
 	const submitPrompt = async (userPrompt) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		console.log("submitPrompt", _chatId);
-
 			document.getElementById("chat-textarea").style.height = "";
 
 			let userMessageId = uuidv4();
@@ -284,7 +289,7 @@
 			if (messages.length == 1) {
 				await $db.createNewChat({
 					id: _chatId,
-					title: "Nuevo chat",
+					title: "Chat nuevo",
 					messages: messages,
 					history: history
 				});
@@ -329,7 +334,7 @@
 					"Content-Type": "text/event-stream"
 				},
 				body: JSON.stringify({
-					prompt: `Generate a brief 3-5 word title for this question, excluding the term 'title.' Then, please reply with only the title: ${userPrompt}`,
+					prompt: `Genera un título breve de 3 a 5 palabras para esta pregunta, excluyendo el término 'título'. Luego, por favor responde solo con el título, no puedes agregar nada más, solo el título: ${userPrompt}`,
 					stream: false
 				})
 			})
@@ -346,7 +351,7 @@
 				});
 
 			if (res) {
-				await setChatTitle(_chatId, res.response === "" ? "Nuevo chat" : res.response);
+				await setChatTitle(_chatId, res.response === "" ? "New Chat" : res.response);
 			}
 		} else {
 			await setChatTitle(_chatId, `${userPrompt}`);
@@ -369,9 +374,13 @@
 
 <div class="min-h-screen w-full flex justify-center">
 	<div class=" py-2.5 flex flex-col justify-between w-full">
+		<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10">
+		</div>
+
 		<div class=" h-full mt-10 mb-32 w-full flex flex-col">
 			<Messages
 				bind:history
+				bind:messages
 				bind:autoScroll
 				{sendPrompt}
 				{regenerateResponse}
@@ -379,5 +388,5 @@
 		</div>
 	</div>
 
-	<MessageInput bind:prompt bind:autoScroll {submitPrompt} {stopResponse} />
+	<MessageInput bind:prompt bind:autoScroll {messages} {submitPrompt} {stopResponse} />
 </div>

@@ -170,9 +170,9 @@
 			try {
 				var successful = document.execCommand("copy");
 				var msg = successful ? "successful" : "unsuccessful";
-				console.log("Fallback: Copying text command was " + msg);
+				console.log("Fallback: El comando de copiar texto fue " + msg);
 			} catch (err) {
-				console.error("Fallback: Oops, unable to copy", err);
+				console.error("Fallback: No se pudo copiar el texto", err);
 			}
 
 			document.body.removeChild(textArea);
@@ -180,11 +180,11 @@
 		}
 		navigator.clipboard.writeText(text).then(
 			function () {
-				console.log("Async: Copying to clipboard was successful!");
-				toast.success("Copying to clipboard was successful!");
+				console.log("Async: El texto se ha copiado correctamente en el portapapeles");
+				toast.success("El texto se ha copiado correctamente en el portapapeles");
 			},
 			function (err) {
-				console.error("Async: Could not copy text: ", err);
+				console.error("Async: No se pudo copiar el texto: ", err);
 			}
 		);
 	};

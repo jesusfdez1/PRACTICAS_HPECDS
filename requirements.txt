@@ -1,9 +1,0 @@
-requests
-chroma
-langchain
-langchain_community
-pymupdf
-chromadb
-flask
-waitress
-flask_cors

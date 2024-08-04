@@ -6,7 +6,7 @@ ENV HOST 0.0.0.0
 WORKDIR /
 
 # Every needed package is installed from requirements.txt
-COPY ./code/requirements.txt /requirements.txt
+COPY ./requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
 
 # Install llama-cpp-python (build with cuda)

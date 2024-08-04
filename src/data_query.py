@@ -26,7 +26,7 @@ def procesar_peticion():
         
         # Imprimir el contenido del usuario más reciente
         print("Contenido del usuario más reciente:", latest_user_content)
-        #query_rag(query_text)
+        query_rag(latest_user_content)
         generate_response(latest_user_content)
     return 
 
@@ -45,11 +45,13 @@ def query_rag(query_text: str):
     # print(prompt)
 
     model = Ollama(model="mistral")
-    response_text = model.invoke(prompt)
-
-    sources = [doc.metadata.get("id", None) for doc, _score in results]
-    formatted_response = f"Response: {response_text}\nSources: {sources}"
-    print(formatted_response)
+    #response_text = model.invoke(prompt)
+    chunks = []
+    for chunk in model.stream(query_text):
+        print(chunk, end="|", flush=True)
+    #sources = [doc.metadata.get("id", None) for doc, _score in results]
+    #formatted_response = f"Response: {response_text}\nSources: {sources}"
+    #print(formatted_response)
     return response_text
 
 def generate_response(query_text: str):

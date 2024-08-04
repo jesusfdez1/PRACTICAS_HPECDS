@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+	import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
 
     export let submitPrompt: Function;
     export let stopResponse: Function;
@@ -12,7 +13,7 @@
 
     const fetchDates = async () => {
         try {
-            const response = await fetch('http://localhost:3001/dates');
+            const response = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/dates');
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }

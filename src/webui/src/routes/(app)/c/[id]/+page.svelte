@@ -2,7 +2,7 @@
 	import { v4 as uuidv4 } from 'uuid';
 	import toast from 'svelte-french-toast';
 
-	import { OLLAMA_API_BASE_URL } from '$lib/constants';
+	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from '$lib/constants';
 	import { tick } from 'svelte';
 	import { convertMessagesToHistory, splitStream } from '$lib/utils';
 	import { goto } from '$app/navigation';
@@ -167,7 +167,6 @@
 				...($settings.authHeader && { Authorization: $settings.authHeader })
 			},
 			body: JSON.stringify({
-				model: model,
 				messages: [
 					$settings.system
 						? {
@@ -239,7 +238,7 @@
 
 								if ($settings.notificationEnabled && !document.hasFocus()) {
 									const notification = new Notification(
-										`Ollama - ${model}`,
+										`Asistente el BOE - ${model}`,
 										{
 											body: responseMessage.content,
 											icon: '/favicon.png'
@@ -371,14 +370,14 @@
 		if ($settings.titleAutoGenerate ?? true) {
 			console.log('generateChatTitle');
 
-			const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/generate`, {
+			const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'text/event-stream',
 					...($settings.authHeader && { Authorization: $settings.authHeader })
 				},
 				body: JSON.stringify({
-					prompt: `Generate a brief 3-5 word title for this question, excluding the term 'title.' Then, please reply with only the title: ${userPrompt}`,
+					prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
 					stream: false
 				})
 			})

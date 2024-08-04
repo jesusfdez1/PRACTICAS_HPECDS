@@ -376,11 +376,9 @@
 					<div class="w-full overflow-hidden">
 						<div class=" self-center font-bold mb-0.5">
 							{#if message.role === "user"}
-								You
+								Tú
 							{:else}
-								Ollama <span class=" text-gray-500 text-sm font-medium"
-									>{message.model ? ` ${message.model}` : ""}</span
-								>
+								Asistente del BOE
 							{/if}
 						</div>
 

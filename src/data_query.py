@@ -4,8 +4,19 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 from embedding_function import get_embedding_function
-from constants import CHROMA_PATH, PROMPT_TEMPLATE
+from constants import CHROMA_PATH, PROMPT_TEMPLATE, MODEL_LLM
 
+def generate_title():
+        data = request.data.decode('utf-8')
+        # Convertir los datos de texto JSON a un diccionario de Python
+        json_data = json.loads(data)
+        # Obtener la lista de mensajes del diccionario
+        messages = json_data.get('prompt', [])
+        # Enviar prompt a Ollama
+        model = Ollama(model=MODEL_LLM)
+        response_text = model.invoke(messages)
+        print(response_text)
+        return jsonify({"response": response_text})
 
 def procesar_peticion():
     if request.headers.get('Content-Type') == 'text/event-stream':

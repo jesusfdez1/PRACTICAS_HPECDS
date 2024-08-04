@@ -2,7 +2,7 @@
 	import { v4 as uuidv4 } from "uuid";
 	import toast from "svelte-french-toast";
 
-	import { OLLAMA_API_BASE_URL } from "$lib/constants";
+	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from "$lib/constants";
 	import { onMount, tick } from "svelte";
 	import { splitStream } from "$lib/utils";
 
@@ -10,7 +10,6 @@
 
 	import MessageInput from "$lib/components/chat/MessageInput.svelte";
 	import Messages from "$lib/components/chat/Messages.svelte";
-	import { page } from "$app/stores";
 
 	let stopResponseFlag = false;
 	let autoScroll = true;
@@ -146,7 +145,6 @@
 				"Content-Type": "text/event-stream"
 			},
 			body: JSON.stringify({
-				model: model,
 				messages: messages.map((message) => ({
 					role: message.role,
 					content: message.content
@@ -328,13 +326,13 @@
 		if ($settings.titleAutoGenerate ?? true) {
 			console.log("generateChatTitle");
 
-			const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/generate`, {
+			const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "text/event-stream"
 				},
 				body: JSON.stringify({
-					prompt: `Genera un título breve de 3 a 5 palabras para esta pregunta, excluyendo el término 'título'. Luego, por favor responde solo con el título, no puedes agregar nada más, solo el título: ${userPrompt}`,
+					prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
 					stream: false
 				})
 			})
@@ -351,7 +349,7 @@
 				});
 
 			if (res) {
-				await setChatTitle(_chatId, res.response === "" ? "New Chat" : res.response);
+				await setChatTitle(_chatId, res.response === "" ? "Chat nuevo" : res.response);
 			}
 		} else {
 			await setChatTitle(_chatId, `${userPrompt}`);

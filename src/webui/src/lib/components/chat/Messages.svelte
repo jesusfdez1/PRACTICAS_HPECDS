@@ -442,7 +442,7 @@
 														confirmEditMessage(message.id);
 													}}
 												>
-													Save & Submit
+													Guardar y enviar
 												</button>
 
 												<button
@@ -451,7 +451,7 @@
 														cancelEditMessage(message.id);
 													}}
 												>
-													Cancel
+													Cancelar
 												</button>
 											</div>
 										</div>
@@ -628,7 +628,7 @@
 															confirmEditResponseMessage(message.id);
 														}}
 													>
-														Save
+														Guardar
 													</button>
 
 													<button
@@ -637,7 +637,7 @@
 															cancelEditMessage(message.id);
 														}}
 													>
-														Cancel
+														Cancelar
 													</button>
 												</div>
 											</div>

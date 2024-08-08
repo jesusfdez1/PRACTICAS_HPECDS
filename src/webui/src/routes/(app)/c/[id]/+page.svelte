@@ -160,7 +160,7 @@
 		await tick();
 		window.scrollTo({ top: document.body.scrollHeight });
 
-		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/chat`, {
+		const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/chat`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'text/event-stream',

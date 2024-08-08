@@ -18,9 +18,27 @@
     };
 
     const deleteInfo = async () => {
+        try {
+            const response = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/clean', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                toast.error("Error al borrar la base de datos");
+            } else {
+                toast.success("Base de datos borrada correctamente");
+            }
+
+            const responseData = await response.json();
+            console.log('Respuesta de la API:', responseData);
+        } catch (error) {
+            console.error('Error:', error);
 
     }
-
+    };
     // Función para enviar a la API con las longitudes establecidas por el usuario
     const sendToAPI = async () => {
         const chunkLengthElement = document.getElementById('chunkLength');

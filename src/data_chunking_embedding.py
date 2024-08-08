@@ -9,14 +9,6 @@ from langchain_community.vectorstores import Chroma
 from constants import CHROMA_PATH, PATH_PDFS, CHUNK_SIZE, CHUNK_OVERLAP
 
 def main():
-    # Comprueba si la base de datos debe limpiarse (usando el indicador --clear).
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--reset", action="store_true", help="Borra la base de datos.")
-    args = parser.parse_args()
-    if args.reset:
-        print("Borrando la base de datos...")
-        limpiar_BBDD()
-
     # Crear (o actualizar) la base de datos.
     documentos = cargar_documentos()
     chunks = dividir_documentos(documentos)
@@ -67,7 +59,6 @@ def añadir_a_chroma(chunks: list[Document]):
 
 def calcular_chunk_ids(chunks):
     # Esto creará IDs como "pdfs/BOE-A-2019-1.pdf:3:0 donde Fuente : Número de página : Chunk Index
-    
     id_ultima_pagina = None
     index_actual_chunk = 0
 
@@ -92,10 +83,12 @@ def calcular_chunk_ids(chunks):
     return chunks
 
 
+
 def limpiar_BBDD():
-    if os.path.exists(CHROMA_PATH):
-        shutil.rmtree(CHROMA_PATH)
+    try:
+        if os.path.exists(CHROMA_PATH):
+            shutil.rmtree(CHROMA_PATH)
+        return "OK", 200
+    except Exception as e:
+        return "Internal Server Error", 500
 
-
-if __name__ == "__main__":
-    main()

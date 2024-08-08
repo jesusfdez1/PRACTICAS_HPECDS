@@ -1,12 +1,15 @@
 from flask import request, jsonify, Response
 from datetime import datetime
 import json
+import time
+from threading import Lock
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 from embedding_function import get_embedding_function
 from constants import CHROMA_PATH, PROMPT_TEMPLATE, MODEL_LLM
 
+lock = Lock()
 
 def generate_title():
     try:
@@ -35,17 +38,29 @@ def procesar_peticion():
         # Encontrar el contenido del usuario más reciente      
         latest_user_content = next((message["content"] for message in reversed(messages) if message["role"] == "user"), None)
         
+        global continuar
         if latest_user_content:
-            print("Latest user content:", latest_user_content)
+          print("Latest user content:", latest_user_content)
+          with lock:
+            continuar = True
             return query_rag(latest_user_content)
-        
-        return jsonify({"response": "No se ha recibido ninguna pregunta"})
-    
+        else:
+          with lock:
+             continuar = False          
+             return '', 204  # Retornar un estado 204 (No Content)
+
     except Exception as e:
         return jsonify({"response": f"Error: {str(e)}"})
 
 
 def query_rag(query_text: str):
+    start_time_total = time.time()
+    load_duration = 0
+    prompt_eval_count = 0
+    prompt_eval_duration = 0
+    eval_count = 0
+    eval_duration = 0
+
     # Prepare the DB.
     # embedding_function = get_embedding_function()
     # db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
@@ -59,37 +74,61 @@ def query_rag(query_text: str):
     # # print(prompt)
 
     try:
+            start_time_load = time.time()
             model = Ollama(model=MODEL_LLM)
-            
+            load_duration = (time.time() - start_time_load) * 1000000
             # Prepare the headers for streaming NDJSON
             def generate_ndjson():
-                for chunk in model.stream(query_text):
-                    created_at = datetime.now().isoformat() + "Z"
-                    yield json.dumps({
-                        "created_at": created_at,
-                        "message": {
-                            "role": "assistant",
-                            "content": chunk
-                        },
-                        "done": False
-                    }) + '\n'
+             nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration
+
+            for chunk in model.stream(query_text):
+                # Mide el tiempo de evaluación del prompt
+                start_time_prompt_eval = time.time()
+
+                with lock:
+                    if continuar:
+                        created_at = datetime.now().isoformat() + "Z"
+                        yield json.dumps({
+                            "created_at": created_at,
+                            "message": {
+                                "role": "assistant",
+                                "content": chunk
+                            },
+                            "done": False
+                        }) + '\n'
+                    else:
+                        break
+
+                # Incrementa el contador de evaluaciones del prompt
+                prompt_eval_count += 1
+
+                # Incrementa el tiempo total de evaluación del prompt
+                prompt_eval_duration += (time.time() - start_time_prompt_eval) * 1000000  # En microsegundos
+
+                # Mide el tiempo de evaluación general
+                start_time_eval = time.time()
                 
-                # Final chunk to indicate completion
-                yield json.dumps({
-                    "created_at": created_at,
-                    "message": {
-                        "role": "assistant",
-                        "content": ""
-                    },
-                    "done_reason": "stop",
-                    "done": True,
-                    "total_duration": 0,
-                    "load_duration": 0,
-                    "prompt_eval_count": 0,
-                    "prompt_eval_duration": 0,
-                    "eval_count": 0,
-                    "eval_duration": 0
-                }) + '\n'
+                # Añadir cualquier otra operación que se quiera medir en eval_duration
+                # eval_duration += (time.time() - start_time_eval) * 1000000
+                # eval_count += 1
+                eval_duration += (time.time() - start_time_eval) * 1000000  # En microsegundos
+
+            # Genera el NDJSON final con las métricas
+            yield json.dumps({
+                "created_at": datetime.now().isoformat() + "Z",
+                "message": {
+                    "role": "assistant",
+                    "content": ""
+                },
+                "done_reason": "stop",
+                "done": True,
+                "total_duration": (time.time() - start_time_total) * 1000000,  
+                "load_duration": load_duration,
+                "prompt_eval_count": prompt_eval_count,
+                "prompt_eval_duration": prompt_eval_duration,
+                "eval_count": eval_count,
+                "eval_duration": eval_duration
+            }) + '\n'
 
             # Return the response as NDJSON
             return Response(generate_ndjson(), mimetype='application/x-ndjson')
@@ -100,6 +139,4 @@ def query_rag(query_text: str):
     except Exception as e:
             print(f"Error in query_rag: {str(e)}")
             return jsonify({"error": f"Error in query_rag: {str(e)}"})
- 
-
 

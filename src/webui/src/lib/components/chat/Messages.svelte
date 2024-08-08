@@ -31,25 +31,25 @@
 			for (const message of messages) {
 				if (message.info) {
 					tippy(`#info-${message.id}`, {
-						content: `<span class="text-xs">token/s: ${
+						content: `<span class="text-xs">Token/s: ${
 							`${
 								Math.round(
 									((message.info.eval_count ?? 0) / (message.info.eval_duration / 1000000000)) * 100
 								) / 100
 							} tokens` ?? "N/A"
 						}<br/>
-						total_duration: ${
+						Duración total: ${
 							Math.round(((message.info.total_duration ?? 0) / 1000000) * 100) / 100 ?? "N/A"
 						}ms<br/>
-						load_duration: ${
+						Duración de carga: ${
 							Math.round(((message.info.load_duration ?? 0) / 1000000) * 100) / 100 ?? "N/A"
 						}ms<br/>
-						prompt_eval_count: ${message.info.prompt_eval_count ?? "N/A"}<br/>
-						prompt_eval_duration: ${
+						Recuento de evaluación de prompt: ${message.info.prompt_eval_count ?? "N/A"}<br/>
+						Duración de evaluación de prompt: ${
 							Math.round(((message.info.prompt_eval_duration ?? 0) / 1000000) * 100) / 100 ?? "N/A"
 						}ms<br/>
-						eval_count: ${message.info.eval_count ?? "N/A"}<br/>
-						eval_duration: ${
+						Recuento de evaluación: ${message.info.eval_count ?? "N/A"}<br/>
+						Duración de evaluación: ${
 							Math.round(((message.info.eval_duration ?? 0) / 1000000) * 100) / 100 ?? "N/A"
 						}ms</span>`,
 						allowHTML: true

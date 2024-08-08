@@ -3,6 +3,7 @@ from waitress import serve
 from flask_cors import CORS
 from data_importer import import_data, data_dates
 from data_downloader import receptor_fechas
+from data_chunking_embedding import limpiar_BBDD
 from data_query import procesar_peticion, generate_title
 from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT
 from embedding_function import set_chunk_values, get_chunk_values
@@ -18,6 +19,7 @@ app.route("/settings", methods=["POST"])(set_chunk_values)
 app.route("/settings", methods=["GET"])(get_chunk_values)
 app.route("/dates", methods=["GET"])(data_dates)
 app.route("/generate", methods=["POST"])(generate_title)
+app.route("/clean", methods=["DELETE"])(limpiar_BBDD)
 
 if __name__ == "__main__":
     # Ejecutar la aplicación con Waitress en la dirección y puerto especificados

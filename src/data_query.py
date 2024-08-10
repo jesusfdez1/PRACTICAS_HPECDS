@@ -37,7 +37,8 @@ def procesar_peticion():
         
         # Encontrar el contenido del usuario más reciente      
         latest_user_content = next((message["content"] for message in reversed(messages) if message["role"] == "user"), None)
-        
+        date = latest_user_content = next((message["date"] for message in reversed(messages) if message["role"] == "user"), None)
+
         global continuar
         if latest_user_content:
           print("Latest user content:", latest_user_content)
@@ -62,16 +63,16 @@ def query_rag(query_text: str):
     eval_duration = 0
 
     # Prepare the DB.
-    # embedding_function = get_embedding_function()
-    # db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    embedding_function = get_embedding_function()
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # # Search the DB.
-    # results = db.similarity_search_with_score(query_text, k=5)
+    results = db.similarity_search_with_score(query_text, k=5, filter={"date": "27/07/2024"})
 
-    # context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-    # prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    # prompt = prompt_template.format(context=context_text, question=query_text)
-    # # print(prompt)
+    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    prompt = prompt_template.format(context=context_text, question=query_text,)
+    print(prompt)
 
     try:
             start_time_load = time.time()
@@ -81,7 +82,7 @@ def query_rag(query_text: str):
             def generate_ndjson():
              nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration
 
-            for chunk in model.stream(query_text):
+            for chunk in model.stream(prompt):
                 # Mide el tiempo de evaluación del prompt
                 start_time_prompt_eval = time.time()
 

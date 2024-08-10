@@ -7,7 +7,6 @@ import re
 import os
 from datetime import datetime
 from datetime import timedelta
-from flask import Flask
 from flask import request
 from constants import PATH, PATH_PDFS
 from data_chunking_embedding import procesar_documentos

@@ -1,6 +1,6 @@
 import os
 import shutil
-from langchain_community.document_loaders import PyPDFLoader, PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function, obtener_fecha_individual

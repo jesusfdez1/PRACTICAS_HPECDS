@@ -198,8 +198,7 @@
 									sample_duration: data.sample_duration,
 									prompt_eval_count: data.prompt_eval_count,
 									prompt_eval_duration: data.prompt_eval_duration,
-									eval_count: data.eval_count,
-									eval_duration: data.eval_duration
+
 								};
 								messages = messages;
 

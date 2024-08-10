@@ -3,5 +3,5 @@
 /chroma
 /src/webui/node_modules
 /src/webui/.svelte-kit
-log.txt
-log.txt
+/src/__pycache__
+

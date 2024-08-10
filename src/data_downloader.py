@@ -9,9 +9,12 @@ from datetime import datetime
 from datetime import timedelta
 from flask import Flask
 from flask import request
-from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, PATH, PATH_PDFS
+from constants import PATH, PATH_PDFS
+from data_chunking_embedding import procesar_documentos
 
-app = Flask(__name__)
+
+global lista_archivos_guardados 
+lista_archivos_guardados = []
 
 def escribir_log(mensaje):
     with open(f'{PATH}/log.txt', 'a') as f:
@@ -82,23 +85,24 @@ def procesar_enlaces(enlaces):
             # Obtener el nombre del archivo
             filename = enlaceInd.split("/")[-1]
             #Obtener los nombres de los archivos que ya se han descargado para no volver a descargarlos
-            files = os.listdir(PATH_PDFS)
-            if filename in files:
+            archivos = os.listdir(PATH_PDFS)
+            if filename in archivos:
                 print(f"Archivo {filename} ya descargado.")
             else:
                 with open(f'{PATH_PDFS}/{filename}', 'wb') as f:
                     f.write(response.content)
+                    lista_archivos_guardados.append(f'{PATH_PDFS}/{filename}')
                 print(f"Archivo {filename} guardado correctamente.")
 
 def receptor_fechas():
     # Capturar json e imprimir
     #Enviar que se ha recibido la petición correctamente al cliente 200    
     data = request.get_json()
-    dates = data["dates"]
+    fechas = data["dates"]
     errors = []
     try:
-        dates = validador_fechas(dates)
-        for inicio, fin in dates:
+        fechas = validador_fechas(fechas)
+        for inicio, fin in fechas:
                 fechaOrigen = datetime.strptime(str(inicio), "%Y-%m-%d %H:%M:%S")
                 fechaFin = datetime.strptime(str(fin), "%Y-%m-%d %H:%M:%S")
                 print(f"Procesando desde {fechaOrigen} hasta {fechaFin}...")
@@ -109,40 +113,45 @@ def receptor_fechas():
             escribir_log(f"{datetime.now()} - Error: {e}")
             errors.append(str(e))
             if errors:
-                    return "Internal Server Error", 500
-    return "OK", 200
+                    return "", 500
+    
+    # Iniciar un hilo para procesar los archivos PDF en segundo plano
+    hilo_procesar = threading.Thread(target=procesar_documentos, args=(lista_archivos_guardados,))
+    hilo_procesar.start()
+
+    return "", 200
 
 
-def merge_overlapping_dates(dates_check):
-    intervals = []
+def unir_fechas_solapadas(dates_check):
+    intervalos = []
     # Convertir las fechas de entrada en objetos datetime y crear Intervalos
-    for date in dates_check:
-        start = datetime.strptime(date["start"], "%Y-%m-%d")
-        if "end" in date:
-            end = datetime.strptime(date["end"], "%Y-%m-%d")
+    for fecha in dates_check:
+        start = datetime.strptime(fecha["start"], "%Y-%m-%d")
+        if "end" in fecha:
+            end = datetime.strptime(fecha["end"], "%Y-%m-%d")
         else:
             end = start  # Si no se proporciona fecha de fin, considerar como intervalo de un día
 
-        intervals.append((start, end))
+        intervalos.append((start, end))
 
     # Ordenar los intervalos por fecha de inicio
-    intervals.sort()
+    intervalos.sort()
 
-    merged_intervals = []
-    current_start, current_end = intervals[0]
+    intervalosUnidos = []
+    current_start, current_end = intervalos[0]
 
-    for interval in intervals[1:]:
+    for interval in intervalos[1:]:
         interval_start, interval_end = interval
 
         if interval_start <= current_end:  # Hay superposición, fusionar los intervalos
             current_end = max(current_end, interval_end)
         else:
-            merged_intervals.append((current_start, current_end))
+            intervalosUnidos.append((current_start, current_end))
             current_start, current_end = interval_start, interval_end
 
-    merged_intervals.append((current_start, current_end))  # Agregar el último intervalo
+    intervalosUnidos.append((current_start, current_end))  # Agregar el último intervalo
 
-    return merged_intervals
+    return intervalosUnidos
 
 def validador_fechas(dates):
     dates_check = []
@@ -162,7 +171,7 @@ def validador_fechas(dates):
             dates_check.append(date)
 
     # Llamamos a la función para combinar las fechas solapadas
-    merged_dates = merge_overlapping_dates(dates_check)
+    merged_dates = unir_fechas_solapadas(dates_check)
     return merged_dates
 
 def procesadorInd(fechaOrigen, fechaFin):

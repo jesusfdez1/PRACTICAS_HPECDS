@@ -1,24 +1,24 @@
 from flask import Flask
 from waitress import serve
 from flask_cors import CORS
-from data_importer import import_data, data_dates
+from data_importer import importar_archivos
 from data_downloader import receptor_fechas
 from data_chunking_embedding import limpiar_BBDD
-from data_query import procesar_peticion, generate_title
+from data_query import procesar_peticion, generar_titulo
 from constants import API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT
-from embedding_function import set_chunk_values, get_chunk_values
+from embedding_function import set_chunk_values, get_chunk_values, obtener_fechas_archivos
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para permitir peticiones desde cualquier origen
 
 # Ruta para el importador de datos
-app.route("/importer", methods=["POST"])(import_data)
+app.route("/importer", methods=["POST"])(importar_archivos)
 app.route("/downloader", methods=["POST"])(receptor_fechas)
 app.route("/chat", methods=["POST"])(procesar_peticion)
 app.route("/settings", methods=["POST"])(set_chunk_values)
 app.route("/settings", methods=["GET"])(get_chunk_values)
-app.route("/dates", methods=["GET"])(data_dates)
-app.route("/generate", methods=["POST"])(generate_title)
+app.route("/dates", methods=["GET"])(obtener_fechas_archivos)
+app.route("/generate", methods=["POST"])(generar_titulo)
 app.route("/clean", methods=["DELETE"])(limpiar_BBDD)
 
 if __name__ == "__main__":

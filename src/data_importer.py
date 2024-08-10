@@ -1,75 +1,31 @@
 from flask import request
 import os
-import fitz
-import datetime
+import threading
 from constants import PATH_PDFS
-import re
+from data_chunking_embedding import procesar_documentos
 
-def import_data():
-    files = request.files.getlist("files[]")
+def importar_archivos():
+    archivos = request.files.getlist("files[]")
+    lista_archivos_guardados = []
+
     # Si no existe la carpeta pdfs, se crea
     try:
         os.makedirs(PATH_PDFS, exist_ok=True)
     except OSError:
         print("No se pudo acceder al directorio para guardar los archivos.")
-        return "Internal Server Error", 500
-        
-    for file in files:
+        return "", 500
+
+    for archivo in archivos:
         try:
-            file.save(f'{PATH_PDFS}/{file.filename}')
+            path_archivo = f'{PATH_PDFS}/{archivo.filename}'
+            archivo.save(path_archivo)
+            lista_archivos_guardados.append(path_archivo)
         except Exception as e:
             print(f"Error al guardar archivo: {e}")
-            return "Internal Server Error", 500
-    return "OK", 200
+            return "", 500
+    # Iniciar un hilo para procesar los archivos PDF en segundo plano
+    hilo_procesar = threading.Thread(target=procesar_documentos, args=(lista_archivos_guardados,))
+    hilo_procesar.start()
 
-def data_dates():
-    dates = set()
-    # Si no existe la carpeta pdfs, error
-    if not os.path.exists(PATH_PDFS):
-        return list(dates)
-    
-    for file in os.listdir(PATH_PDFS):
-        file_path = os.path.join(PATH_PDFS, file)
-        if os.path.isfile(file_path) and file.lower().endswith('.pdf'):
-            try:
-                # Abrir el archivo PDF y leer sus metadatos
-                pdf_document = fitz.open(file_path)
-                metadata = pdf_document.metadata
-                pdf_document.close()
-                
-                # Obtener el campo "Palabras clave"
-                keywords = metadata.get("keywords", "")
-                # Obtener el último valor separado por ;
-                if keywords:
-                    last_value = keywords.split(";")[-1].strip()
-                    try:
-                        # Intentar convertir el último valor en una fecha
-                        last_date = datetime.datetime.strptime(last_value, "%d/%m/%Y")
-                        dates.add(last_date)
-                    except ValueError:
-                            last_value = keywords.split(";")[3].strip()
-                            dates.add(obtener_fecha_desde_texto(last_value))
-            except Exception as e:
-                print(f"Error al procesar archivo {file}: {e}")
-                pass
-    formatted_dates = []
-    for date in dates:
-        formatted_date = date.strftime("%d/%m/%Y")
-        formatted_dates.append(formatted_date)
-    return sorted(formatted_dates)
-
-def obtener_fecha_desde_texto(texto):
-    patron_fecha = r'(?P<dia_semana>\w+)\s+(?P<dia>\d{1,2})\s+de\s+(?P<mes>\w+)\s+de\s+(?P<anio>\d{4})\s*'
-    match_fecha = re.search(patron_fecha, texto, re.IGNORECASE)
-    
-    if match_fecha:
-        dia = int(match_fecha.group('dia'))
-        mes_str = match_fecha.group('mes').lower()
-        anio = int(match_fecha.group('anio'))
-        
-        meses = {'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6, 'julio': 7, 'agosto': 8,'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12}
-        mes = meses.get(mes_str)
-        
-        if mes:
-            return datetime.datetime(anio, mes, dia)
-
+    # Devolver respuesta inmediata
+    return "", 200

@@ -65,8 +65,6 @@
                 toast.success("Datos enviados correctamente");
             }
 
-            const responseData = await response.json();
-            console.log('Respuesta de la API:', responseData);
         } catch (error) {
             console.error('Error:', error);
 			toast.error('Error en la solicitud');

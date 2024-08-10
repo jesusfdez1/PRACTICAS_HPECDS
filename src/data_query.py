@@ -11,7 +11,7 @@ from constants import CHROMA_PATH, PROMPT_TEMPLATE, MODEL_LLM
 
 lock = Lock()
 
-def generate_title():
+def generar_titulo():
     try:
         data = request.data.decode('utf-8')
         # Convertir los datos de texto JSON a un diccionario de Python

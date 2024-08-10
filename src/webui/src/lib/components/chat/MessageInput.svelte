@@ -8,6 +8,7 @@
     export let autoScroll = true;
 
     export let prompt = "";
+    let selectedDate = ""; // Variable para almacenar la fecha seleccionad
     export let messages = [];
     export let dates = [];
 
@@ -64,6 +65,7 @@
                 id="number-select"
                 class="w-full rounded py-2 px-4 text-sm border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100"
                 on:click={handleDropdownClick} 
+                bind:value={selectedDate}
             >
                 <option value="" disabled selected hidden>Seleccionar fecha del documento</option>
                 {#each dates as date}
@@ -75,7 +77,7 @@
                 <form
                     class=" flex flex-col relative w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100"
                     on:submit|preventDefault={() => {
-                        submitPrompt(prompt);
+                        submitPrompt(prompt,selectedDate);
                     }}
                 >
                     <div class="flex">
@@ -89,7 +91,7 @@
                                     e.preventDefault();
                                 }
                                 if (prompt !== "" && e.keyCode == 13 && !e.shiftKey) {
-                                    submitPrompt(prompt);
+                                    submitPrompt(prompt,selectedDate);
                                 }
                             }}
                             rows="1"

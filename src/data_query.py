@@ -37,14 +37,15 @@ def procesar_peticion():
         
         # Encontrar el contenido del usuario más reciente      
         latest_user_content = next((message["content"] for message in reversed(messages) if message["role"] == "user"), None)
-        date = latest_user_content = next((message["date"] for message in reversed(messages) if message["role"] == "user"), None)
+        date = next((message["date"] for message in reversed(messages) if message["role"] == "user"), None)
 
         global continuar
         if latest_user_content:
           print("Latest user content:", latest_user_content)
+          print("Date:", date)
           with lock:
             continuar = True
-            return query_rag(latest_user_content)
+            return query_rag(latest_user_content,date)
         else:
           with lock:
              continuar = False          
@@ -54,7 +55,7 @@ def procesar_peticion():
         return jsonify({"response": f"Error: {str(e)}"})
 
 
-def query_rag(query_text: str):
+def query_rag(query_text,date):
     start_time_total = time.time()
     load_duration = 0
     prompt_eval_count = 0
@@ -67,7 +68,7 @@ def query_rag(query_text: str):
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=5, filter={"date": "27/07/2024"})
+    results = db.similarity_search_with_score(query_text, k=5, filter={"date": date})
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)

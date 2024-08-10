@@ -24,5 +24,6 @@ Responde la siguiente pregunta basándote únicamente en el siguiente contexto:
 {context}
 
 ---
-Responde la pregunta basándote en el contexto anterior: {question}
+Responde la pregunta basándote en el contexto anterior: {question}. 
+En caso de que no haya contexto, responde la pregunta de forma general.
 """

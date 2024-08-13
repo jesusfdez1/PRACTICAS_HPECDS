@@ -1,9 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
 	import { API_MICROSERVICES_PORT, API_MICROSERVICES_BASE_URL } from "$lib/constants";
+	import toast from 'svelte-french-toast';
 
     export let submitPrompt: Function;
     export let stopResponse: Function;
+
 
     export let autoScroll = true;
 
@@ -20,7 +22,7 @@
             }
             dates = await response.json();
         } catch (error) {
-            console.error('Error fetching dates:', error);
+            toast.error('Error obteniendo las fechas de los documentos');
         }
     };
 

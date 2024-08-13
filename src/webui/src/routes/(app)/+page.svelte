@@ -264,6 +264,12 @@
 	const submitPrompt = async (userPrompt, selectedDate) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		console.log("submitPrompt", _chatId);
+
+		
+		if (messages.length != 0 && messages.at(-1).done != true) {
+			console.log("wait");
+
+		} else {
 			document.getElementById("chat-textarea").style.height = "";
 
 			let userMessageId = uuidv4();
@@ -300,6 +306,7 @@
 			}, 50);
 
 			await sendPrompt(userPrompt, userMessageId, _chatId);
+		}
 	};
 
 	const stopResponse = () => {

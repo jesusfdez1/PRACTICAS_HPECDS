@@ -20,10 +20,13 @@ MODEL_LLM ="llama3.1:8b-instruct-q8_0"
 
 # CONSTANTES DE PROMPT
 PROMPT_TEMPLATE = """
-Responde la siguiente pregunta basándote únicamente en el siguiente contexto:
+Eres un analista de documentos, experto en cualquier tipo de operación como resumenes, analisis y traducción entre otras operaciones. Responde la siguiente pregunta basándote únicamente en el siguiente contexto:
 {context}
 
 ---
 Responde la pregunta basándote en el contexto anterior: {question}. 
-En caso de que no haya contexto, responde la pregunta de forma general.
+"""
+
+NO_CONTEXT_PROMPT_TEMPLATE = """
+Responde esta pregunta: {question}. 
 """

@@ -33,7 +33,7 @@ def cargar_documentos(rutas_archivos):
 
 def añadir_a_chroma(chunks: list[Document]):
     # Carga la base de datos existente.
-    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embedding_function())
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embedding_function())   
 
     # Calcula los IDs de los fragmentos.
     chunks_con_ids = calcular_chunk_ids(chunks)
@@ -66,9 +66,14 @@ def calcular_chunk_ids(chunks):
 
     for chunk in chunks:
         fuente = chunk.metadata.get("source")
-        pagina = chunk.metadata.get("page")
-        id_pagina_actual = f"{fuente}:{pagina}"
+        #Guardar en fuente el nombre del archivo
+        try:
+            nombre = os.path.basename(fuente)
+        except:
+            nombre = fuente
 
+        pagina = chunk.metadata.get("page")
+        id_pagina_actual = f"{nombre}:{pagina}"
         # Si el ID de la página es el mismo que el anterior, incrementa el índice.
         if id_pagina_actual == id_ultima_pagina:
             index_actual_chunk += 1

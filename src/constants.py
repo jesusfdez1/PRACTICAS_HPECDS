@@ -20,13 +20,25 @@ MODEL_LLM ="llama3.1:8b-instruct-q8_0"
 
 # CONSTANTES DE PROMPT
 PROMPT_TEMPLATE = """
-Eres un analista de documentos, experto en cualquier tipo de operación como resumenes, analisis y traducción entre otras operaciones. Responde la siguiente pregunta basándote únicamente en el siguiente contexto:
-{context}
+Tu tarea consiste en generar una respuesta para la consulta proporcionada, teniendo en cuenta el contexto histórico especificado. Aquí tienes los detalles necesarios para formular una respuesta coherente y lógica, basándote en la historia y el contexto proporcionados:
 
----
-Responde la pregunta basándote en el contexto anterior: {question}. 
+Interacciones históricas: {historial}
+Contexto proporcionado: {context}
+Pregunta actual del usuario: {question}
+Asegúrate de que tu respuesta sea comprensible y relevante, utilizando la información del historial de mensajes y el contexto para ofrecer una respuesta completa.  Solo puedes decir al usuario tu respuesta, no hagas referencia a nada más.
 """
 
 NO_CONTEXT_PROMPT_TEMPLATE = """
-Responde esta pregunta: {question}. 
+Tu tarea consiste en generar una respuesta para la consulta proporcionada, teniendo en cuenta el contexto histórico especificado. Aquí tienes los detalles necesarios para formular una respuesta coherente y lógica, basándote en la historia y el contexto proporcionados:
+
+Interacciones históricas: {historial}
+Pregunta actual del usuario: {question}
+Asegúrate de que tu respuesta sea comprensible y relevante, utilizando la información del historial de mensajes.  Solo puedes decir al usuario tu respuesta, no hagas referencia a nada más.
+"""
+
+NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE = """
+Tu tarea consiste en generar una respuesta para la consulta proporcionada. Aquí tienes los detalles necesarios para formular una respuesta coherente y lógica:
+
+Pregunta actual del usuario: {question}
+Asegúrate de que tu respuesta sea comprensible y relevante.
 """

@@ -10,7 +10,7 @@
     export let autoScroll = true;
 
     export let prompt = "";
-    let selectedDate = ""; // Variable para almacenar la fecha seleccionad
+    let selectedDate = ""; // Variable para almacenar la fecha seleccionada
     export let messages = [];
     export let dates = [];
 
@@ -32,6 +32,24 @@
         await fetchDates(); // Llama a fetchDates cuando se despliega el desplegable
     };
 
+    const handleSubmit = () => {
+        if (!selectedDate) {
+            toast.error('Por favor, selecciona una fecha del documento');
+            return;
+        }
+        submitPrompt(prompt, selectedDate);
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.keyCode === 13 && !e.shiftKey) {
+            e.preventDefault();
+            if (prompt !== "" && selectedDate) {
+                submitPrompt(prompt, selectedDate);
+            } else {
+                toast.error('Por favor, selecciona una fecha del documento');
+            }
+        }
+    };
 </script>
 
 <div class="fixed bottom-0 w-full">
@@ -69,7 +87,8 @@
                 on:click={handleDropdownClick} 
                 bind:value={selectedDate}
             >
-                <option value="" disabled selected hidden>Seleccionar fecha del documento</option>
+            <option value="" disabled selected hidden>Seleccionar fecha del documento</option>
+            <option value=" " >Ninguna fecha concreta</option>
                 {#each dates as date}
                     <option value={date}>{date}</option>
                 {/each}
@@ -78,9 +97,7 @@
             <div class="bg-gradient-to-t from-white dark:from-gray-800 from-40% pb-2">
                 <form
                     class=" flex flex-col relative w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100"
-                    on:submit|preventDefault={() => {
-                        submitPrompt(prompt,selectedDate);
-                    }}
+                    on:submit|preventDefault={handleSubmit}
                 >
                     <div class="flex">
                         <textarea
@@ -88,14 +105,7 @@
                             class="dark:bg-gray-800 dark:text-gray-100 outline-none w-full py-3 px-2 pl-4 rounded-xl resize-none"
                             placeholder="Enviar un mensaje"
                             bind:value={prompt}
-                            on:keypress={(e) => {
-                                if (e.keyCode == 13 && !e.shiftKey) {
-                                    e.preventDefault();
-                                }
-                                if (prompt !== "" && e.keyCode == 13 && !e.shiftKey) {
-                                    submitPrompt(prompt,selectedDate);
-                                }
-                            }}
+                            on:keypress={handleKeyPress}
                             rows="1"
                             on:input={(e) => {
                                 e.target.style.height = "";

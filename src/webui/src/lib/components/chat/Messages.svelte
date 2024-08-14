@@ -329,12 +329,13 @@
 	<div class="m-auto text-center max-w-md pb-56 px-2">
 		<div class="flex justify-center mt-8">
 			<img
-				src="/ollama.png"
-				class=" w-16 invert-[10%] dark:invert-[100%] rounded-full"
+				src="/ollamaBOE.png"
+				class=" w-534 invert-[10%] dark:invert-[100%] "
 				alt="ollama"
 				draggable="false"
 			/>
 		</div>
+		<div class="mt-9"></div>
 		<div class=" mt-2 text-2xl text-gray-800 dark:text-gray-100 font-semibold">
 			¿Cómo puedo ayudarte hoy?
 		</div>

@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from datetime import timedelta
 from flask import request
-from constants import PATH, PATH_PDFS
+from constants import PATH, PATH_PDFS, NUM_HILOS
 from data_chunking_embedding import procesar_documentos
 
 
@@ -175,8 +175,7 @@ def validador_fechas(dates):
 
 def procesadorInd(fechaOrigen, fechaFin):
     enlaces = {}
-    num_hilos=15
-         
+             
     while fechaOrigen <= fechaFin:
         url = f'https://www.boe.es/datosabiertos/api/boe/sumario/{fechaOrigen.strftime("%Y%m%d")}'
         print(f"{url}")
@@ -194,11 +193,11 @@ def procesadorInd(fechaOrigen, fechaFin):
         fechaOrigen += timedelta(days=1)
 
         #Haz que los enlaces se dividan en partes los mas iguales posibles
-        enlaces_parts = [enlaces[i::num_hilos] for i in range(num_hilos)]
+        enlaces_parts = [enlaces[i::NUM_HILOS] for i in range(NUM_HILOS)]
 
         # Crear y empezar 5 hilos
         threads = []
-        for i in range(num_hilos):
+        for i in range(NUM_HILOS):
             t = threading.Thread(target=procesar_enlaces, args=(enlaces_parts[i],))
             t.start()
             threads.append(t)

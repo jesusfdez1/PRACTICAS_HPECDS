@@ -92,11 +92,13 @@ def query_rag(query_text,date, historial):
          prompt = prompt_template.format(context=context_text, question=query_text, historial=historial)
     
     print(prompt)
+    #Calcular 
 
     try:
             start_time_load = time.time()
             model = Ollama(model=MODEL_LLM)
             load_duration = (time.time() - start_time_load) * 1000000
+            print(model.get_num_tokens(prompt))
             # Prepare the headers for streaming NDJSON
             def generate_ndjson():
              nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration

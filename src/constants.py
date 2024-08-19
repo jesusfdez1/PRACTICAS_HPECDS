@@ -2,7 +2,8 @@ import os
 
 # CONSTANTES DE RUTAS
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PATH_PDFS = f'{PATH}/pdfs'
+PATH_PDFS = f'{PATH}/data'
+PATH_JSON = f'{PATH_PDFS}/dates.json'
 CHROMA_PATH = "chroma"
 
 # CONSTANTES DE API

@@ -1,10 +1,37 @@
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 from flask import request
-from constants import CHUNK_SIZE, CHUNK_OVERLAP, PATH_PDFS
+from constants import CHUNK_SIZE, CHUNK_OVERLAP, PATH_PDFS, PATH_JSON
 import fitz
 import datetime
 import re
 import os
+import json
+import threading
+
+nombre_archivo_json = "dates.json"
+
+
+# Crear un lock global
+json_lock = threading.Lock()
+
+def guardar_fecha_en_json(archivo, fecha):
+    # Leer datos existentes del archivo JSON
+    with json_lock:
+        if os.path.exists(PATH_JSON):
+            with open(PATH_JSON, "r") as archivo_json:
+                datos = json.load(archivo_json)
+        else:
+            datos = {}
+
+        nombre_base_archivo = os.path.basename(archivo)
+        fecha_formateada = fecha.strftime("%d/%m/%Y")
+        # Actualizar o agregar la fecha en el diccionario
+        datos[nombre_base_archivo] = fecha_formateada
+
+        # Guardar el diccionario actualizado en el archivo JSON
+        with open(PATH_JSON, "w") as archivo_json:
+            json.dump(datos, archivo_json, indent=4)
+        print(f"Fecha del archivo '{nombre_base_archivo}' guardada/actualizada en {nombre_archivo_json}")
 
 def get_embedding_function():
    # embeddings = OllamaEmbeddings(model="mxbai-embed-large")
@@ -25,22 +52,20 @@ def set_chunk_values():
 def get_chunk_values():
     return {"chunkLength": CHUNK_SIZE, "contextLength": CHUNK_OVERLAP}, 200
 
-
 def obtener_fechas_archivos():
     fechas = set()
-    # Si no existe la carpeta pdfs, error
-    if not os.path.exists(PATH_PDFS):
-        return list(fechas)
-    
-    for archivo in os.listdir(PATH_PDFS):
-        fecha = obtener_fecha_individual(archivo)
-        if fecha is not None:
+
+    # Verificar si el archivo JSON existe
+    if os.path.exists(PATH_JSON):
+        with open(PATH_JSON, "r") as archivo_json:
+            datos = json.load(archivo_json)
+        
+        # Agregar todas las fechas únicas al conjunto
+        for fecha in datos.values():
             fechas.add(fecha)
-    fechas_formateadas = []
-    for fecha in fechas:
-        fecha_formateada = fecha.strftime("%d/%m/%Y")
-        fechas_formateadas.append(fecha_formateada)
-    return sorted(fechas_formateadas)
+    
+    # Retornar la lista de fechas únicas, ordenada
+    return sorted(fechas)
 
 def obtener_fecha_individual(archivo):
     ruta_archivo = os.path.join(PATH_PDFS, archivo)
@@ -59,11 +84,17 @@ def obtener_fecha_individual(archivo):
                 try:
                     # Intentar convertir el último valor en una fecha
                     ultima_fecha = datetime.datetime.strptime(ultimo_valor, "%d/%m/%Y")
+                    # Guardar la fecha en el archivo JSON
+                    guardar_fecha_en_json(archivo, ultima_fecha)
                     return ultima_fecha
                 except ValueError:
                     # Si no se puede convertir, intentar con otro valor
                     ultimo_valor = palabras_clave.split(";")[3].strip()
-                    return obtener_fecha_desde_texto(ultimo_valor)
+                    fecha_alternativa = obtener_fecha_desde_texto(ultimo_valor)
+                    if fecha_alternativa:
+                        # Guardar la fecha en el archivo JSON
+                        guardar_fecha_en_json(archivo, fecha_alternativa)
+                    return fecha_alternativa
         except Exception as e:
             print(f"Error al procesar archivo {archivo}: {e}")
             pass

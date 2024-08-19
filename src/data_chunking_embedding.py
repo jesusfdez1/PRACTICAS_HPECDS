@@ -40,9 +40,12 @@ def cargar_documentos_paralelo(rutas_archivos):
 
 def cargar_documento(ruta, text_splitter):
     try:
+        fecha = obtener_fecha_individual(ruta)
         docs = PyPDFLoader(ruta).load_and_split(text_splitter)
         for doc in docs:
             doc.page_content = doc.page_content.replace('\n', ' ').replace('  ', ' ')
+            if fecha is not None:
+                 doc.metadata["date"] = fecha.strftime("%d/%m/%Y")
         return docs
     except FileNotFoundError:
         print(f"El archivo {ruta} no se encontró.")
@@ -92,9 +95,6 @@ def calcular_chunk_ids(chunks):
         id_ultima_pagina = id_pagina_actual
 
         chunk.metadata["id"] = chunk_id
-        fecha = obtener_fecha_individual(fuente)
-        if fecha is not None:
-            chunk.metadata["date"] = fecha.strftime("%d/%m/%Y")
     return chunks
 
 def limpiar_BBDD():

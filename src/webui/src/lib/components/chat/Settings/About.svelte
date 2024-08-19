@@ -24,22 +24,5 @@
                 </div>
             </div>
         </div>
-
-        <hr class=" dark:border-gray-700" />
-
-        <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-            Creado por <a
-                class=" text-gray-500 dark:text-gray-300 font-medium"
-                href="https://github.com/tjbck"
-                target="_blank">Timothy J. Baek</a
-            >
-        </div>
-        <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-            Modificado por <a
-            class=" text-gray-500 dark:text-gray-300 font-medium"
-            href="https://github.com/jesusfdez1"
-            target="_blank">Jesús Fernández López</a
-        >
-        </div>
     </div>
 </div>

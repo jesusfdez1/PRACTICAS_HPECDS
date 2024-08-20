@@ -1,13 +1,14 @@
 from flask import request, jsonify, Response
 from datetime import datetime
 import json
+from collections import deque
 import time
 from threading import Lock
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 from embedding_function import get_embedding_function
-from constants import CHROMA_PATH, PROMPT_TEMPLATE, MODEL_LLM, NO_CONTEXT_PROMPT_TEMPLATE, NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE
+from constants import CHROMA_PATH, PROMPT_TEMPLATE, MODEL_LLM, NO_CONTEXT_PROMPT_TEMPLATE, NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE, MAX_TOKENS
 
 lock = Lock()
 
@@ -34,7 +35,7 @@ def procesar_peticion():
         
         # Obtener la lista de mensajes del diccionario
         messages = json_data.get('messages', [])
-        historial = ""
+        historial = deque()
 
         # Encontrar el contenido del usuario más reciente      
         latest_user_content = next((message["content"] for message in reversed(messages) if message["role"] == "user"), None)
@@ -43,9 +44,9 @@ def procesar_peticion():
         if len(messages) > 1:
             for i in range(len(messages)-2):
                 if messages[i]["role"] == "assistant":
-                    historial += "Contestación del asistente LLM:" + messages[i]["content"] + "\n"
+                    historial.append("Contestación del asistente LLM: " + messages[i]["content"])
                 elif messages[i]["role"] == "user":
-                    historial += "Contestación del usuario:" + messages[i]["content"] + "\n"           
+                    historial.append("Contestación del usuario: " + messages[i]["content"])         
 
         global continuar
         if latest_user_content:
@@ -64,7 +65,7 @@ def procesar_peticion():
         return jsonify({"response": f"Error: {str(e)}"})
 
 
-def query_rag(query_text,date, historial):
+def query_rag(query_text, date, historial):
     start_time_total = time.time()
     load_duration = 0
     prompt_eval_count = 0
@@ -75,30 +76,46 @@ def query_rag(query_text,date, historial):
     # Prepare the DB.
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    # Search the DB.
+    results = db.similarity_search_with_score(query_text, k=7, filter={"date": date})
 
-    # # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=5, filter={"date": date})
-    print(historial)
-    #Si results es un array vacío, se utiliza el template NO_CONTEXT_PROMPT_TEMPLATE
-    if historial=="" and not results:
-        prompt_template = ChatPromptTemplate.from_template(NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE)
-        prompt = prompt_template.format(question=query_text)
-    elif not results:
-        prompt_template = ChatPromptTemplate.from_template(NO_CONTEXT_PROMPT_TEMPLATE)
-        prompt = prompt_template.format(question=query_text, historial=historial)
-    else:
-         context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-         prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-         prompt = prompt_template.format(context=context_text, question=query_text, historial=historial)
+    start_time_load = time.time()
+    model = Ollama(model=MODEL_LLM, num_ctx=MAX_TOKENS)
+    load_duration = (time.time() - start_time_load) * 1000000
     
+    # Function to format prompt based on conditions
+    def format_prompt(results, query_text, historial):
+        if historial == "" and not results:
+            prompt_template = ChatPromptTemplate.from_template(NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE)
+            return prompt_template.format(question=query_text)
+        elif not results:
+            prompt_template = ChatPromptTemplate.from_template(NO_CONTEXT_PROMPT_TEMPLATE)
+            return prompt_template.format(question=query_text, historial=historial)
+        else:
+            context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+            prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+            return prompt_template.format(context=context_text, question=query_text, historial=historial)
+
+    while True:
+        # Format prompt with current historial and results
+        prompt = format_prompt(results, query_text, "\n".join(historial))
+
+        # Check prompt size after formatting
+        if model.get_num_tokens(prompt) <= MAX_TOKENS:
+            break  # Exit loop if prompt size is within limit
+
+        # Reduce historial until prompt size is within limit
+        if historial:
+             # Remove first element from historial
+            historial.popleft()
+        else:
+            # If historial is empty, break the loop to avoid infinite loop
+            break
+
     print(prompt)
     #Calcular 
 
     try:
-            start_time_load = time.time()
-            model = Ollama(model=MODEL_LLM)
-            load_duration = (time.time() - start_time_load) * 1000000
-            print(model.get_num_tokens(prompt))
             # Prepare the headers for streaming NDJSON
             def generate_ndjson():
              nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration

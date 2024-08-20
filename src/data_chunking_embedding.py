@@ -5,7 +5,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function, obtener_fecha_individual
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from constants import CHROMA_PATH, PATH_PDFS, CHUNK_SIZE, CHUNK_OVERLAP, NUM_HILOS
 
 def procesar_documentos(archivos):
@@ -35,7 +35,6 @@ def cargar_documentos_paralelo(rutas_archivos):
                 chunks.extend(docs)
             except Exception as e:
                 print(f"Error al procesar archivo: {e}")
-
     return chunks
 
 def cargar_documento(ruta, text_splitter):

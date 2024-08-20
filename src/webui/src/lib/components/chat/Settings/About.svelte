@@ -3,7 +3,6 @@
         import {info} from "$lib/stores";
 </script>
 
-<div class="flex flex-col h-full justify-between space-y-3 text-sm mb-6">
     <div class=" space-y-3">
         <div>
             <div class=" mb-2.5 text-sm font-medium">Versión de la interfaz web</div>
@@ -25,4 +24,3 @@
             </div>
         </div>
     </div>
-</div>

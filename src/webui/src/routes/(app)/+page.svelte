@@ -2,7 +2,11 @@
 	import { v4 as uuidv4 } from "uuid";
 	import toast from "svelte-french-toast";
 
-	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from "$lib/constants";
+	import {
+		OLLAMA_API_BASE_URL,
+		API_MICROSERVICES_BASE_URL,
+		API_MICROSERVICES_PORT
+	} from "$lib/constants";
 	import { onMount, tick } from "svelte";
 	import { splitStream } from "$lib/utils";
 
@@ -13,7 +17,6 @@
 
 	let stopResponseFlag = false;
 	let autoScroll = true;
-
 
 	let title = "";
 	let prompt = "";
@@ -109,9 +112,7 @@
 	//////////////////////////
 
 	const sendPrompt = async (userPrompt, parentId, _chatId) => {
-		await Promise.all(
-				await sendPromptOllama(userPrompt, parentId, _chatId)
-		);
+		await Promise.all(await sendPromptOllama(userPrompt, parentId, _chatId));
 
 		await chats.set(await $db.getChats());
 	};
@@ -124,7 +125,7 @@
 			id: responseMessageId,
 			childrenIds: [],
 			role: "assistant",
-			content: "",
+			content: ""
 		};
 
 		history.messages[responseMessageId] = responseMessage;
@@ -138,20 +139,23 @@
 
 		await tick();
 		window.scrollTo({ top: document.body.scrollHeight });
-		const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/chat`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "text/event-stream"
-			},
-			body: JSON.stringify({
-				messages: messages.map((message) => ({
-					role: message.role,
-					date: message.date,
-					content: message.content
-				})),
-				format: $settings.requestFormat ?? undefined
-			})
-		}).catch((err) => {
+		const res = await fetch(
+			`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/chat`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "text/event-stream"
+				},
+				body: JSON.stringify({
+					messages: messages.map((message) => ({
+						role: message.role,
+						date: message.date,
+						content: message.content
+					})),
+					format: $settings.requestFormat ?? undefined
+				})
+			}
+		).catch((err) => {
 			console.log(err);
 			return null;
 		});
@@ -198,8 +202,7 @@
 									sample_count: data.sample_count,
 									sample_duration: data.sample_duration,
 									prompt_eval_count: data.prompt_eval_count,
-									prompt_eval_duration: data.prompt_eval_duration,
-
+									prompt_eval_duration: data.prompt_eval_duration
 								};
 								messages = messages;
 
@@ -265,10 +268,8 @@
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		console.log("submitPrompt", _chatId);
 
-		
 		if (messages.length != 0 && messages.at(-1).done != true) {
 			console.log("wait");
-
 		} else {
 			document.getElementById("chat-textarea").style.height = "";
 
@@ -333,16 +334,19 @@
 		if ($settings.titleAutoGenerate ?? true) {
 			console.log("generateChatTitle");
 
-			const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "text/event-stream"
-				},
-				body: JSON.stringify({
-					prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
-					stream: false
-				})
-			})
+			const res = await fetch(
+				`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "text/event-stream"
+					},
+					body: JSON.stringify({
+						prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
+						stream: false
+					})
+				}
+			)
 				.then(async (res) => {
 					if (!res.ok) throw await res.json();
 					return res.json();
@@ -379,17 +383,10 @@
 
 <div class="min-h-screen w-full flex justify-center">
 	<div class=" py-2.5 flex flex-col justify-between w-full">
-		<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10">
-		</div>
+		<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10" />
 
 		<div class=" h-full mt-10 mb-32 w-full flex flex-col">
-			<Messages
-				bind:history
-				bind:messages
-				bind:autoScroll
-				{sendPrompt}
-				{regenerateResponse}
-			/>
+			<Messages bind:history bind:messages bind:autoScroll {sendPrompt} {regenerateResponse} />
 		</div>
 	</div>
 

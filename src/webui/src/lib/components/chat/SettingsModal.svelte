@@ -5,7 +5,6 @@
 	import About from "./Settings/About.svelte";
 	import Local from "./Settings/Local.svelte";
 
-
 	export let show = false;
 	let selectedTab = "general";
 </script>
@@ -145,30 +144,28 @@
 					<div class="flex flex-col h-full justify-between text-sm">
 						<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
 							<General />
-						</div>					
+						</div>
 					</div>
 				{:else if selectedTab === "local"}
 					<div class="flex flex-col h-full justify-between text-sm">
 						<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
 							<div class=" text-sm font-medium">Importación local de documentos del BOE</div>
-							<Local/>
-						</div>					
-				</div>
-
+							<Local />
+						</div>
+					</div>
 				{:else if selectedTab === "remoto"}
 					<div class="flex flex-col h-full justify-between text-sm">
 						<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
 							<div class=" text-sm font-medium">Descarga remota de documentos del BOE</div>
-							<Remoto/>
-						</div>					
+							<Remoto />
+						</div>
 					</div>
-				
 				{:else if selectedTab === "about"}
-				<div class="flex flex-col h-full justify-between text-sm">
-					<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
-						<About/>
-					</div>					
-				</div>
+					<div class="flex flex-col h-full justify-between text-sm">
+						<div class=" space-y-3 pr-1.5 overflow-y-scroll max-h-72">
+							<About />
+						</div>
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -184,5 +181,4 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
-
 </style>

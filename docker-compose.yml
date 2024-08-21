@@ -1,10 +1,10 @@
-version: '3.9'
-
 services:
-  chatbot:
-    build: .
-    container_name: local_chatbot
+  webui:
+    build: ./src/webui
     ports:
-      - "9090:8501"
+      - "3000:80"  # Mapear el puerto 3000 del host al puerto 80 del contenedor
     environment:
-      - TEMPERATURE=0.9
+      NODE_ENV: production
+
+  # Otros servicios como microservicios de Python
+  # ...

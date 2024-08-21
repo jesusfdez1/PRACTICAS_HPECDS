@@ -1,16 +1,20 @@
 <script lang="ts">
-	import { v4 as uuidv4 } from 'uuid';
-	import toast from 'svelte-french-toast';
+	import { v4 as uuidv4 } from "uuid";
+	import toast from "svelte-french-toast";
 
-	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT } from '$lib/constants';
-	import { tick } from 'svelte';
-	import { convertMessagesToHistory, splitStream } from '$lib/utils';
-	import { goto } from '$app/navigation';
-	import { settings, db, chats, chatId } from '$lib/stores';
+	import {
+		OLLAMA_API_BASE_URL,
+		API_MICROSERVICES_BASE_URL,
+		API_MICROSERVICES_PORT
+	} from "$lib/constants";
+	import { tick } from "svelte";
+	import { convertMessagesToHistory, splitStream } from "$lib/utils";
+	import { goto } from "$app/navigation";
+	import { settings, db, chats, chatId } from "$lib/stores";
 
-	import MessageInput from '$lib/components/chat/MessageInput.svelte';
-	import Messages from '$lib/components/chat/Messages.svelte';
-	import { page } from '$app/stores';
+	import MessageInput from "$lib/components/chat/MessageInput.svelte";
+	import Messages from "$lib/components/chat/Messages.svelte";
+	import { page } from "$app/stores";
 
 	let loaded = false;
 	let stopResponseFlag = false;
@@ -18,8 +22,8 @@
 
 	// let chatId = $page.params.id;
 
-	let title = '';
-	let prompt = '';
+	let title = "";
+	let prompt = "";
 
 	let messages = [];
 	let history = {
@@ -49,7 +53,7 @@
 			if (chat) {
 				loaded = true;
 			} else {
-				await goto('/');
+				await goto("/");
 			}
 		})();
 	}
@@ -71,10 +75,10 @@
 					: convertMessagesToHistory(chat.messages);
 			title = chat.title;
 
-			let _settings = JSON.parse(localStorage.getItem('settings') ?? '{}');
+			let _settings = JSON.parse(localStorage.getItem("settings") ?? "{}");
 			await settings.set({
 				..._settings,
-				system: chat.system ?? _settings.system,
+				system: chat.system ?? _settings.system
 			});
 			autoScroll = true;
 
@@ -92,21 +96,21 @@
 
 	const copyToClipboard = (text) => {
 		if (!navigator.clipboard) {
-			var textArea = document.createElement('textarea');
+			var textArea = document.createElement("textarea");
 			textArea.value = text;
 
 			// Avoid scrolling to bottom
-			textArea.style.top = '0';
-			textArea.style.left = '0';
-			textArea.style.position = 'fixed';
+			textArea.style.top = "0";
+			textArea.style.left = "0";
+			textArea.style.position = "fixed";
 
 			document.body.appendChild(textArea);
 			textArea.focus();
 			textArea.select();
 
 			try {
-				var successful = document.execCommand('copy');
-				var msg = successful ? 'successful' : 'unsuccessful';
+				var successful = document.execCommand("copy");
+				var msg = successful ? "successful" : "unsuccessful";
 				console.log("Fallback: El comando de copiar texto fue " + msg);
 			} catch (err) {
 				console.error("Fallback: Oops, no se pudo copiar", err);
@@ -130,22 +134,20 @@
 	//////////////////////////
 
 	const sendPrompt = async (userPrompt, parentId, _chatId) => {
-		await Promise.all(
-				sendPromptOllama(userPrompt, parentId, _chatId)		
-		);
+		await Promise.all(sendPromptOllama(userPrompt, parentId, _chatId));
 
 		await chats.set(await $db.getChats());
 	};
 
 	const sendPromptOllama = async (userPrompt, parentId, _chatId) => {
-		console.log('sendPromptOllama');
+		console.log("sendPromptOllama");
 		let responseMessageId = uuidv4();
 		let responseMessage = {
 			parentId: parentId,
 			id: responseMessageId,
 			childrenIds: [],
-			role: 'assistant',
-			content: '',
+			role: "assistant",
+			content: ""
 		};
 
 		history.messages[responseMessageId] = responseMessage;
@@ -160,30 +162,33 @@
 		await tick();
 		window.scrollTo({ top: document.body.scrollHeight });
 
-		const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/chat`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'text/event-stream',
-				...($settings.authHeader && { Authorization: $settings.authHeader })
-			},
-			body: JSON.stringify({
-				messages: [
-					$settings.system
-						? {
-								role: 'system',
-								content: $settings.system
-						  }
-						: undefined,
-					...messages
-				]
-					.filter((message) => message)
-					.map((message) => ({
-						role: message.role,
-						content: message.content
-					})),
-				format: $settings.requestFormat ?? undefined
-			})
-		}).catch((err) => {
+		const res = await fetch(
+			`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/chat`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "text/event-stream",
+					...($settings.authHeader && { Authorization: $settings.authHeader })
+				},
+				body: JSON.stringify({
+					messages: [
+						$settings.system
+							? {
+									role: "system",
+									content: $settings.system
+							  }
+							: undefined,
+						...messages
+					]
+						.filter((message) => message)
+						.map((message) => ({
+							role: message.role,
+							content: message.content
+						})),
+					format: $settings.requestFormat ?? undefined
+				})
+			}
+		).catch((err) => {
 			console.log(err);
 			return null;
 		});
@@ -191,7 +196,7 @@
 		if (res && res.ok) {
 			const reader = res.body
 				.pipeThrough(new TextDecoderStream())
-				.pipeThrough(splitStream('\n'))
+				.pipeThrough(splitStream("\n"))
 				.getReader();
 
 			while (true) {
@@ -203,19 +208,19 @@
 				}
 
 				try {
-					let lines = value.split('\n');
+					let lines = value.split("\n");
 
 					for (const line of lines) {
-						if (line !== '') {
+						if (line !== "") {
 							console.log(line);
 							let data = JSON.parse(line);
 
-							if ('detail' in data) {
+							if ("detail" in data) {
 								throw data;
 							}
 
 							if (data.done == false) {
-								if (responseMessage.content == '' && data.message.content == '\n') {
+								if (responseMessage.content == "" && data.message.content == "\n") {
 									continue;
 								} else {
 									responseMessage.content += data.message.content;
@@ -230,18 +235,15 @@
 									sample_count: data.sample_count,
 									sample_duration: data.sample_duration,
 									prompt_eval_count: data.prompt_eval_count,
-									prompt_eval_duration: data.prompt_eval_duration,
+									prompt_eval_duration: data.prompt_eval_duration
 								};
 								messages = messages;
 
 								if ($settings.notificationEnabled && !document.hasFocus()) {
-									const notification = new Notification(
-										`Asistente el BOE - ${model}`,
-										{
-											body: responseMessage.content,
-											icon: '/favicon.png'
-										}
-									);
+									const notification = new Notification(`Asistente el BOE - ${model}`, {
+										body: responseMessage.content,
+										icon: "/favicon.png"
+									});
 								}
 
 								if ($settings.responseAutoCopy) {
@@ -252,7 +254,7 @@
 					}
 				} catch (error) {
 					console.log(error);
-					if ('detail' in error) {
+					if ("detail" in error) {
 						toast.error(error.detail);
 					}
 					break;
@@ -263,7 +265,7 @@
 				}
 
 				await $db.updateChatById(_chatId, {
-					title: title === '' ? 'Chat nuevo' : title,
+					title: title === "" ? "Chat nuevo" : title,
 					system: $settings.system ?? undefined,
 					messages: messages,
 					history: history
@@ -273,7 +275,7 @@
 			if (res !== null) {
 				const error = await res.json();
 				console.log(error);
-				if ('detail' in error) {
+				if ("detail" in error) {
 					toast.error(error.detail);
 					responseMessage.content = error.detail;
 				} else {
@@ -297,30 +299,29 @@
 			window.scrollTo({ top: document.body.scrollHeight });
 		}
 
-		if (messages.length == 2 && messages.at(1).content !== '') {
-			window.history.replaceState(history.state, '', `/c/${_chatId}`);
+		if (messages.length == 2 && messages.at(1).content !== "") {
+			window.history.replaceState(history.state, "", `/c/${_chatId}`);
 			await generateChatTitle(_chatId, userPrompt);
 		}
 	};
 
 	const submitPrompt = async (userPrompt, selectedDate) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
-		console.log('submitPrompt', _chatId);
+		console.log("submitPrompt", _chatId);
 
 		if (messages.length != 0 && messages.at(-1).done != true) {
-			console.log('wait');
-
+			console.log("wait");
 		} else {
-			document.getElementById('chat-textarea').style.height = '';
+			document.getElementById("chat-textarea").style.height = "";
 
 			let userMessageId = uuidv4();
 			let userMessage = {
 				id: userMessageId,
 				parentId: messages.length !== 0 ? messages.at(-1).id : null,
 				childrenIds: [],
-				role: 'user',
+				role: "user",
 				date: selectedDate,
-				content: userPrompt,
+				content: userPrompt
 			};
 
 			if (messages.length !== 0) {
@@ -334,17 +335,17 @@
 			if (messages.length == 1) {
 				await $db.createNewChat({
 					id: _chatId,
-					title: 'New Chat',
+					title: "New Chat",
 					system: $settings.system ?? undefined,
 					messages: messages,
 					history: history
 				});
 			}
 
-			prompt = '';
+			prompt = "";
 
 			setTimeout(() => {
-				window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+				window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 			}, 50);
 
 			await sendPrompt(userPrompt, userMessageId, _chatId);
@@ -353,12 +354,12 @@
 
 	const stopResponse = () => {
 		stopResponseFlag = true;
-		console.log('stopResponse');
+		console.log("stopResponse");
 	};
 
 	const regenerateResponse = async () => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
-		console.log('regenerateResponse', _chatId);
+		console.log("regenerateResponse", _chatId);
 
 		if (messages.length != 0 && messages.at(-1).done == true) {
 			messages.splice(messages.length - 1, 1);
@@ -373,25 +374,28 @@
 
 	const generateChatTitle = async (_chatId, userPrompt) => {
 		if ($settings.titleAutoGenerate ?? true) {
-			console.log('generateChatTitle');
+			console.log("generateChatTitle");
 
-			const res = await fetch(`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'text/event-stream',
-					...($settings.authHeader && { Authorization: $settings.authHeader })
-				},
-				body: JSON.stringify({
-					prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
-					stream: false
-				})
-			})
+			const res = await fetch(
+				`${API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT ?? OLLAMA_API_BASE_URL}/generate`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "text/event-stream",
+						...($settings.authHeader && { Authorization: $settings.authHeader })
+					},
+					body: JSON.stringify({
+						prompt: `Genera un título de 3 a 5 palabras para la conversación que empieza con el texto: ${userPrompt}. Responde solo con el título de forma neutral, no puedes agregar nada más, ni comillas ni nada extra, solo el título`,
+						stream: false
+					})
+				}
+			)
 				.then(async (res) => {
 					if (!res.ok) throw await res.json();
 					return res.json();
 				})
 				.catch((error) => {
-					if ('detail' in error) {
+					if ("detail" in error) {
 						toast.error(error.detail);
 					}
 					console.log(error);
@@ -399,7 +403,7 @@
 				});
 
 			if (res) {
-				await setChatTitle(_chatId, res.response === '' ? 'Chat nuevo' : res.response);
+				await setChatTitle(_chatId, res.response === "" ? "Chat nuevo" : res.response);
 			}
 		} else {
 			await setChatTitle(_chatId, `${userPrompt}`);
@@ -423,26 +427,13 @@
 {#if loaded}
 	<div class="min-h-screen w-full flex justify-center">
 		<div class=" py-2.5 flex flex-col justify-between w-full">
-			<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10">
-			</div>
+			<div class="max-w-2xl mx-auto w-full px-3 md:px-0 mt-10" />
 
 			<div class=" h-full mt-10 mb-32 w-full flex flex-col">
-				<Messages
-					bind:history
-					bind:messages
-					bind:autoScroll
-					{sendPrompt}
-					{regenerateResponse}
-				/>
+				<Messages bind:history bind:messages bind:autoScroll {sendPrompt} {regenerateResponse} />
 			</div>
 		</div>
 
-		<MessageInput
-			bind:prompt
-			bind:autoScroll
-			{messages}
-			{submitPrompt}
-			{stopResponse}
-		/>
+		<MessageInput bind:prompt bind:autoScroll {messages} {submitPrompt} {stopResponse} />
 	</div>
 {/if}

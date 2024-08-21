@@ -9,10 +9,14 @@
 	import SettingsModal from "$lib/components/chat/SettingsModal.svelte";
 	import Sidebar from "$lib/components/layout/Sidebar.svelte";
 	import toast from "svelte-french-toast";
-	import { OLLAMA_API_BASE_URL, API_MICROSERVICES_BASE_URL, API_MICROSERVICES_PORT, requiredOllamaVersion } from "$lib/constants";
+	import {
+		OLLAMA_API_BASE_URL,
+		API_MICROSERVICES_BASE_URL,
+		API_MICROSERVICES_PORT,
+		requiredOllamaVersion
+	} from "$lib/constants";
 	import { json } from "@sveltejs/kit";
 	let loaded = false;
-
 
 	const getDB = async () => {
 		const DB = await openDB("Chats", 1, {
@@ -88,14 +92,13 @@
 	};
 
 	const getChunkValues = async () => {
-            const res = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + '/settings', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-
-            .then(async (res) => {
+		const res = await fetch(API_MICROSERVICES_BASE_URL + API_MICROSERVICES_PORT + "/settings", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+			.then(async (res) => {
 				if (!res.ok) throw await res.json();
 				return res.json();
 			})
@@ -113,8 +116,8 @@
 
 		//Obtener los valores de chunkLength y contextLength del JSON de la respuesta
 		const { chunkLength, contextLength } = res;
-		return {chunkLength, contextLength};
-    };
+		return { chunkLength, contextLength };
+	};
 
 	const getOllamaVersion = async () => {
 		const res = await fetch(`${$settings?.API_BASE_URL ?? OLLAMA_API_BASE_URL}/version`, {
@@ -155,9 +158,9 @@
 		) {
 		}
 	};
-	
+
 	const setChunkValues = async (chunkLength: any, contextLength: any) => {
-		await chunks.set({ ...$chunks, chunkLength, contextLength});
+		await chunks.set({ ...$chunks, chunkLength, contextLength });
 	};
 
 	onMount(async () => {
@@ -186,14 +189,14 @@
 							<div class="text-center dark:text-white text-2xl font-medium z-50">
 								Problema de conexión o actualización necesaria
 							</div>
-						
+
 							<div class="mt-4 text-center text-sm dark:text-gray-200 w-full">
 								Se ha detectado un problema de conexión o el uso de una versión antigua de Ollama.
 								Asegúrate de tener la última versión de Ollama
 								<br class="hidden sm:flex" />(versión
-								<span class="dark:text-white font-medium">{requiredOllamaVersion} o superior</span>) o verifica tu conexión.
+								<span class="dark:text-white font-medium">{requiredOllamaVersion} o superior</span>)
+								o verifica tu conexión.
 							</div>
-						
 
 							<div class=" mt-6 mx-auto relative group w-fit">
 								<button

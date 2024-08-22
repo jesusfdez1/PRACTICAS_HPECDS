@@ -20,7 +20,7 @@ def generar_titulo():
         # Obtener la lista de mensajes del diccionario
         messages = json_data.get('prompt', [])
         # Enviar prompt a Ollama
-        model = Ollama(model=MODEL_LLM)
+        model = Ollama(model=MODEL_LLM, base_url="http://ollama:11434")
         response_text = model.invoke(messages)
         return jsonify({"response": response_text})
     except Exception as e:
@@ -65,26 +65,8 @@ def procesar_peticion():
         return jsonify({"response": f"Error: {str(e)}"})
 
 
-def query_rag(query_text, date, historial):
-    start_time_total = time.time()
-    load_duration = 0
-    prompt_eval_count = 0
-    prompt_eval_duration = 0
-    eval_count = 0
-    eval_duration = 0
-
-    # Prepare the DB.
-    embedding_function = get_embedding_function()
-    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-    # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=7, filter={"date": date})
-
-    start_time_load = time.time()
-    model = Ollama(model=MODEL_LLM, num_ctx=MAX_TOKENS)
-    load_duration = (time.time() - start_time_load) * 1000000
-    
     # Function to format prompt based on conditions
-    def format_prompt(results, query_text, historial):
+def format_prompt(results, query_text, historial):
         if historial == "" and not results:
             prompt_template = ChatPromptTemplate.from_template(NO_CONTEXT_HISTORIAL_PROMPT_TEMPLATE)
             return prompt_template.format(question=query_text)
@@ -95,6 +77,28 @@ def query_rag(query_text, date, historial):
             context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
             prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
             return prompt_template.format(context=context_text, question=query_text, historial=historial)
+        
+def query_rag(query_text, date, historial):
+    start_time_total = time.time()
+    load_duration = 0
+    prompt_eval_count = 0
+    prompt_eval_duration = 0
+    eval_count = 0
+    eval_duration = 0
+    try:
+        # Prepare the DB.
+        embedding_function = get_embedding_function()
+        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+        # Search the DB.
+        results = db.similarity_search_with_score(query_text, k=7, filter={"date": date})
+
+        start_time_load = time.time()
+        model = Ollama(model=MODEL_LLM, num_ctx=MAX_TOKENS, base_url="http://ollama:11434")
+        print(model.base_url)
+        load_duration = (time.time() - start_time_load) * 1000000
+    except Exception as e:
+            print(f"Error en query_rag: {str(e)}")
+            return jsonify({"error": f"Error en query_rag: {str(e)}"})
 
     while True:
         # Format prompt with current historial and results
@@ -117,10 +121,10 @@ def query_rag(query_text, date, historial):
 
     try:
             # Prepare the headers for streaming NDJSON
-            def generate_ndjson():
-             nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration
+        def generate_ndjson():
+            nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration
 
-            for chunk in model.stream(prompt):
+            for chunk in model.astream(prompt):
                 # Mide el tiempo de evaluación del prompt
                 start_time_prompt_eval = time.time()
 
@@ -187,11 +191,7 @@ def query_rag(query_text, date, historial):
 
             # Return the response as NDJSON
             return Response(generate_ndjson(), mimetype='application/x-ndjson')
-        #sources = [doc.metadata.get("id", None) for doc, _score in results]
-        #formatted_response = f"Response: {response_text}\nSources: {sources}"
-        #print(formatted_response)
         
     except Exception as e:
-            print(f"Error in query_rag: {str(e)}")
-            return jsonify({"error": f"Error in query_rag: {str(e)}"})
-
+            print(f"Error en query_rag: {str(e)}")
+            return jsonify({"error": f"Error en query_rag 2: {str(e)}"})

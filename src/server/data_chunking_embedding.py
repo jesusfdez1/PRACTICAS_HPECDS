@@ -3,10 +3,9 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema.document import Document
 from embedding_function import get_embedding_function, obtener_fecha_individual
 from langchain_chroma import Chroma
-from constants import CHROMA_PATH, PATH_PDFS, CHUNK_SIZE, CHUNK_OVERLAP, NUM_HILOS
+from constants import CHROMA_PATH, CHUNK_SIZE, CHUNK_OVERLAP, NUM_HILOS
 
 def procesar_documentos(archivos):
     chunks = cargar_documentos_paralelo(archivos)  # Cargar documentos de manera paralela.

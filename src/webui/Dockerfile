@@ -15,14 +15,11 @@ COPY . .
 # Construye la aplicación Svelte con Vite
 RUN npm run build
 
-# Comando de depuración para verificar que el build se generó correctamente
-RUN ls -l /app/dist
-
 # Etapa 2: Servir la aplicación
 FROM nginx:alpine
 
 # Copia los archivos construidos desde la etapa anterior
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Exponer el puerto 80 para que Nginx pueda servir la aplicación
 EXPOSE 80

@@ -5,6 +5,22 @@ services:
       - "3000:80"  # Mapear el puerto 3000 del host al puerto 80 del contenedor
     environment:
       NODE_ENV: production
+      
+  server:
+    build: ./src/server
+    ports:
+      - "3001:3001"  # Mapear el puerto 5000 del host al puerto 5000 del contenedor
+    depends_on:
+      - ollama
+      
+  ollama:
+    build: ./src/llm
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    expose:
+      - "11434"
 
-  # Otros servicios como microservicios de Python
-  # ...
+volumes:
+  ollama_data:

@@ -35,7 +35,7 @@ def guardar_fecha_en_json(archivo, fecha):
 
 def get_embedding_function():
    # embeddings = OllamaEmbeddings(model="mxbai-embed-large")
-    embeddings = OllamaEmbeddings(model="joanfm/jina-embeddings-v2-base-es")
+    embeddings = OllamaEmbeddings(model="joanfm/jina-embeddings-v2-base-es", base_url="http://ollama:11434")
     return embeddings
 
 def set_chunk_values():

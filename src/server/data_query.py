@@ -79,12 +79,6 @@ def format_prompt(results, query_text, historial):
             return prompt_template.format(context=context_text, question=query_text, historial=historial)
         
 def query_rag(query_text, date, historial):
-    start_time_total = time.time()
-    load_duration = 0
-    prompt_eval_count = 0
-    prompt_eval_duration = 0
-    eval_count = 0
-    eval_duration = 0
     try:
         # Prepare the DB.
         embedding_function = get_embedding_function()
@@ -119,12 +113,24 @@ def query_rag(query_text, date, historial):
     print(prompt)
     #Calcular 
 
-    try:
-            # Prepare the headers for streaming NDJSON
-        def generate_ndjson():
-            nonlocal prompt_eval_count, prompt_eval_duration, eval_count, eval_duration
+    try: 
+            # Return the response as NDJSON
+            return Response(generate_ndjson(model, prompt, results), mimetype='application/x-ndjson')
+        
+    except Exception as e:
+            print(f"Error en query_rag: {str(e)}")
+            return jsonify({"error": f"Error en query_rag 2: {str(e)}"})
+    
 
-            for chunk in model.astream(prompt):
+def generate_ndjson(model, prompt, results):
+            # Prepare the headers for streaming NDJSON
+            start_time_total = time.time()
+            load_duration = 0
+            prompt_eval_count = 0
+            prompt_eval_duration = 0
+            eval_count = 0
+            eval_duration = 0
+            for chunk in model.stream(prompt):
                 # Mide el tiempo de evaluación del prompt
                 start_time_prompt_eval = time.time()
 
@@ -188,10 +194,3 @@ def query_rag(query_text, date, historial):
                 "eval_count": eval_count,
                 "eval_duration": eval_duration
             }) + '\n'
-
-            # Return the response as NDJSON
-            return Response(generate_ndjson(), mimetype='application/x-ndjson')
-        
-    except Exception as e:
-            print(f"Error en query_rag: {str(e)}")
-            return jsonify({"error": f"Error en query_rag 2: {str(e)}"})

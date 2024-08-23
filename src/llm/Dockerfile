@@ -1,9 +1,6 @@
 # Usar la imagen base de Ollama
 FROM ollama/ollama:0.3.7-rc4
 
-# Instalar curl
-RUN apt-get update && apt-get install -y curl
-
 # Exponer el puerto por defecto de Ollama
 EXPOSE 11434
 

@@ -10,9 +10,10 @@ services:
     build: ./src/server
     ports:
       - "3001:3001"  # Mapear el puerto 3001 del host al puerto 3001 del contenedor
+    env_file: "docker.env"
     volumes:
       - server_data:/app/data  # Monta un volumen para persistir los datos del servidor
-      
+     
   ollama:
     build: ./src/llm
     ports:

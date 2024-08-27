@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expone el puerto en el que tu aplicación correrá
-EXPOSE 3001
+EXPOSE 5001
 
 # Define el comando para ejecutar la aplicación
-CMD ["python", "server.py"]
+CMD ["python", "chat.py"]

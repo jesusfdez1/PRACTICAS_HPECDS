@@ -1,4 +1,4 @@
-from flask import request, jsonify, Response
+from flask import request, jsonify, Response, Flask
 from datetime import datetime
 import json
 from collections import deque
@@ -7,10 +7,23 @@ from threading import Lock
 from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
-from embedding_function import get_funcion_embebido
+from langchain_community.embeddings.ollama import OllamaEmbeddings
 import os
+from waitress import serve
+from flask_cors import CORS
+
 
 lock = Lock()
+def get_funcion_embebido() -> OllamaEmbeddings:
+    """
+    Devuelve una instancia de `OllamaEmbeddings` con un modelo y una URL base específicos.
+    
+    :return embeddings: Una instancia de la clase OllamaEmbeddings inicializada con los parámetros de modelo y URL base especificados.
+    """
+    embeddings = OllamaEmbeddings(
+        model="joanfm/jina-embeddings-v2-base-es", base_url="http://ollama:11434"
+    )
+    return embeddings
 
 def formatear_prompt(resultados, query_text, historial):
     """
@@ -63,29 +76,6 @@ def formatear_prompt(resultados, query_text, historial):
         context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in resultados])
         plantilla_prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
         return plantilla_prompt.format(context=context_text, question=query_text, historial=historial)
-
-def generar_titulo():
-    """
-    Toma los datos JSON, extrae los mensajes, los envía a un modelo de Ollama y devuelve el 
-    texto de respuesta o un mensaje de chat predeterminado con la fecha y hora actual si ocurre una excepción.
-    
-    :return json: Devuelve una respuesta JSON que contiene el texto de respuesta generado por el modelo 
-                  de Ollama basado en los mensajes de entrada del prompt, o una respuesta predeterminada si ocurre una 
-                  excepción durante el proceso. La respuesta incluye el texto generado o un mensaje con marca de tiempo 
-                  si ocurre un error.
-    """
-    try:
-        datos = request.data.decode("utf-8")
-        datosJSON = json.loads(datos) # Convertir los datos de texto JSON a un diccionario de Python
-        mensajes = datosJSON.get("prompt", [])  # Obtener la lista de mensajes del diccionario
-        modelo = Ollama(model=os.getenv("MODEL_LLM"), base_url="http://ollama:11434") # Enviar prompt a Ollama
-        respuesta = modelo.invoke(mensajes)
-        return jsonify({"response": respuesta})
-    except Exception as e:
-        return jsonify(
-            {"response": "Chat del " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        )
-
 
 def procesar_peticion():
     """
@@ -286,3 +276,14 @@ def generate_ndjson(modelo, prompt, resultados):
             "eval_duration": eval_duration,
         }
     ) + "\n"
+
+
+
+app = Flask(__name__)
+CORS(app)
+
+# Ruta para el importador de datos
+app.route("/chat", methods=["POST"])(procesar_peticion)
+
+if __name__ == "__main__":
+    serve(app, host=os.getenv('QUERY'), port=int(os.getenv('QUERY_PORT')))

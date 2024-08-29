@@ -3,10 +3,16 @@ Este proyecto está diseñado para permitir a los usuarios interactuar con el Bo
 
 El sistema utiliza el lenguaje de modelado de lenguaje (LLM) para procesar los documentos del BOE y realizar análisis de texto. Además, se busca implementar un algoritmo basado en embeddings para identificar y extraer información relevante de los documentos. Esto permitirá a los usuarios realizar búsquedas más precisas y obtener resultados más relevantes. El objetivo final es proporcionar una herramienta eficiente y fácil de usar para acceder y gestionar la información del BOE de manera efectiva.
 
-
 ![Interfaz general de la aplicación](readme/1.png)
 
-## Características principales
+## Índice
+- [1. Características principales](#características-principales)
+- [2. Arquitectura del proyecto](#arquitectura-del-proyecto)
+- [3. Uso de Nginx como Proxy en Docker Compose](#uso-de-nginx-como-proxy-en-docker-compose)
+- [4. Dependencias y frameworks](#dependencias-y-frameworks)
+- [5. Interfaz web](#interfaz-web)
+
+## 1. Características principales
 El sistema ofrece una variedad de funcionalidades diseñadas para facilitar la consulta y gestión eficiente de documentos del BOE (Boletín Oficial del Estado):
 
 - **Descarga de BOE por fecha**: Permite buscar y descargar documentos del BOE especificando fechas individuales o rangos de fechas, asegurando acceso rápido a la información necesaria.
@@ -27,7 +33,7 @@ El sistema ofrece una variedad de funcionalidades diseñadas para facilitar la c
 
 - **Consultas avanzadas sobre documentos**: Facilita la realización de consultas avanzadas basadas en las fechas de publicación de los documentos descargados, proporcionando un acceso rápido y efectivo a la información relevante.
 - **Gestión de conversaciones**
-    - Generación automática de títulos de conversación: Las conversaciones se organizan por temas, mejorando la comprensión y seguimiento de los intercambios.
+    - Generación automática de títulos de conversación: Las conversaciones se organizan por temas, mejorando la comprensión y seguimiento de las conversaciones.
     - Borrado de conversaciones: Permite a los usuarios eliminar todas las conversaciones mantenidas con el sistema directamente desde la interfaz, proporcionando control total sobre los datos almacenados.
     - Importación y exportación de conversaciones: Facilita la importación y exportación de conversaciones en formato JSON, permitiendo una integración fluida con otras plataformas y herramientas.
 
@@ -35,14 +41,14 @@ El sistema ofrece una variedad de funcionalidades diseñadas para facilitar la c
 
 Estas características combinadas hacen que el sistema sea robusto y versátil, adecuado tanto para usuarios individuales como para entornos empresariales que requieran una gestión eficiente de documentos y comunicaciones.
 
-## Arquitectura del proyecto
+## 2. Arquitectura del proyecto
 El proyecto se organiza en tres formas distintas cada una de ellas implementadas en distintas ramas de GitHub siguiendo cada una con su propia configuración arquitectónica:
 
 - main: Utiliza una arquitectura cliente-servidor básica sin Docker donde un servidor central gestiona todas las peticiones de los clientes.
 - docker-clientserver: Implementa con una arquitectura cliente-servidor básica para ello se utiliza Docker.
 - docker-microservices: Utiliza Docker con una arquitectura de microservicios descentralizada, donde cada servicio es independiente, promoviendo la escalabilidad y la robustez del sistema.
 
-## Uso de Nginx como Proxy en Docker Compose
+## 3. Uso de Nginx como Proxy en Docker Compose
 Este repositorio utiliza Docker Compose para gestionar un entorno de microservicios, donde Nginx desempeña un papel crucial como servidor proxy para dirigir las solicitudes entrantes a diferentes servicios del backend. A continuación se detalla cómo se configura Nginx y su integración con los microservicios.
 
 ### Configuración de Nginx
@@ -53,7 +59,7 @@ Nginx se configura como un contenedor separado en Docker Compose. La configuraci
 
 Todos los servicios están conectados a la red app-network en Docker Compose para facilitar la comunicación interna y asegurar un entorno cohesivo para la aplicación.
 
-## Dependencias y frameworks
+## 4. Dependencias y frameworks
 El proyecto utiliza una combinación de tecnologías y frameworks para asegurar su funcionamiento efectivo y eficiente:
 
 ### Frameworks y Entornos de Ejecución
@@ -67,7 +73,7 @@ El proyecto utiliza una combinación de tecnologías y frameworks para asegurar 
 ### Dependencias de Python
 Antes de ejecutar cualquier script del servidor, es necesario instalar las siguientes dependencias específicas de Python. Estas están detalladas y especificadas en el archivo requirements.txt, asegurando que el entorno de ejecución del servidor esté completamente configurado y funcional.
 
-## Interfaz web
+## 5. Interfaz web
 La interfaz web utilizada en este proyecto se basa en Ollama Web UI Lite, una versión optimizada y modular de la interfaz de usuario que se adapta a los requisitos necesarios para poder realizar las funciones descritas anteriormente. Esta versión presenta las siguientes características destacadas:
 
 - Migración a TypeScript: Mejora la robustez y mantenibilidad del código, reduciendo errores y facilitando la colaboración entre desarrolladores.

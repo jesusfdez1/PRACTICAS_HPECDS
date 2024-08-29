@@ -11,13 +11,20 @@ El sistema ofrece una variedad de funcionalidades diseñadas para facilitar la c
 
 - **Descarga de BOE por fecha**: Permite buscar y descargar documentos del BOE especificando fechas individuales o rangos de fechas, asegurando acceso rápido a la información necesaria.
 - **Importación de documentos locales**: Los usuarios pueden cargar documentos locales para que el sistema los procese, garantizando flexibilidad en la gestión de documentos propios o externos.
- ![Descarga del BOE](readme/3.png)  ![Importación de documentos](readme/4.png) 
+
+<p align="center">
+  <img src="readme/3.png" alt="Descarga del BOE" width="450"/>
+  <img src="readme/4.png" alt="Importación de documentos" width="450"/>
+</p>
 
 **Configuración de parámetros**: A través de una interfaz web intuitiva, los usuarios pueden ajustar parámetros como `CHUNK_SIZE` y `CHUNK_OVERLAP` para optimizar el procesamiento eficiente de documentos según sus necesidades específicas.
 - **Interfaz gráfica personalizable**: Se ofrece la opción de seleccionar entre temas de colores oscuros o claros, permitiendo a los usuarios adaptar la interfaz visual a sus preferencias individuales.
 - **Eliminación segura de datos**: Desde la interfaz del sistema, los usuarios pueden solicitar la eliminación completa y segura de la base de datos y los documentos almacenados, cumpliendo con estándares de seguridad y privacidad.
 
-![Otras configuraciones](readme/2.png) 
+<p align="center">
+    <img src="readme/2.png" alt="Otras configuraciones" width="500"/>
+</p>
+
 - **Consultas avanzadas sobre documentos**: Facilita la realización de consultas avanzadas basadas en las fechas de publicación de los documentos descargados, proporcionando un acceso rápido y efectivo a la información relevante.
 - **Gestión de conversaciones**
     - Generación automática de títulos de conversación: Las conversaciones se organizan por temas, mejorando la comprensión y seguimiento de los intercambios.
@@ -50,7 +57,7 @@ Todos los servicios están conectados a la red app-network en Docker Compose par
 El proyecto utiliza una combinación de tecnologías y frameworks para asegurar su funcionamiento efectivo y eficiente:
 
 ### Frameworks y Entornos de Ejecución
-- Olla Framework: Este framework proporciona la estructura y funcionalidades fundamentales del sistema, facilitando la gestión de modelos y la integración de servicios necesarios para el procesamiento de documentos del BOE.
+- Ollama: Este framework se utiliza para la gestión de modelos de LLM y facilita la integración de servicios necesarios para el procesamiento de documentos del BOE.
 - Node.js 18: Se emplea como el entorno de ejecución principal para construir y operar la aplicación. Node.js ofrece un soporte moderno y eficiente para JavaScript, lo que es crucial para mantener la escalabilidad y el rendimiento del sistema.
 
 ### Modelos y Herramientas de Procesamiento de Texto

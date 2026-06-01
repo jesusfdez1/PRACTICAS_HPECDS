@@ -1,6 +1,7 @@
-﻿# BOE Document Query and Management System via LLM
+# BOE Knowledge Assistant
 
-[Español](README-es.md) | [English](README.md)
+> [!NOTE]
+> Para leer este documento en español, visita este [archivo](README-es.md)
 
 This project provides a system to interact with the *Boletín Oficial del Estado* (BOE) by allowing users to query, process, and manage documents based on selected publication dates. 
 
@@ -9,7 +10,7 @@ The system utilizes Large Language Models (LLMs) to process BOE documents and pe
 ![General Application Interface](imgs/1.png)
 
 ## Table of Contents
-- [1. Key Features](#1-key-features)f
+- [1. Key Features](#1-key-features)
 - [2. Project Architecture](#2-project-architecture)
 - [3. Nginx Reverse Proxy Configuration](#3-nginx-reverse-proxy-configuration)
 - [4. Dependencies and Frameworks](#4-dependencies-and-frameworks)

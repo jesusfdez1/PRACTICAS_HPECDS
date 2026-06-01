@@ -1,6 +1,7 @@
-# Sistema de Consulta y Gestión de Documentos del BOE mediante LLM
+# Asistente de Conocimiento del BOE
 
-[Español](README-es.md) | [English](README.md)
+> [!NOTE]
+> To read this document in English, visit this [file](readme.md)
 
 Este proyecto está diseñado para permitir a los usuarios interactuar con el *Boletín Oficial del Estado* (BOE) facilitando la consulta, procesamiento y gestión de documentos basados en fechas de publicación específicas.
 

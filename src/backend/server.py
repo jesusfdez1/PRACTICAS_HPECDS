@@ -2,11 +2,11 @@ from flask import Flask
 import os
 from waitress import serve
 from flask_cors import CORS
-from data_importer import importar_archivos
-from data_downloader import receptor_fechas
-from data_chunking_embedding import limpiar_chroma
-from data_query import procesar_peticion, generar_titulo
-from embedding_function import set_chunk_values, get_chunk_values, get_fechas_archivos
+from importer import importar_archivos
+from downloader import receptor_fechas
+from chunking import limpiar_chroma
+from query import procesar_peticion, generar_titulo
+from embeddings import set_chunk_values, get_chunk_values, get_fechas_archivos
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para permitir peticiones desde cualquier origen
@@ -22,11 +22,11 @@ app.route("/generate", methods=["POST"])(generar_titulo)
 app.route("/clean", methods=["DELETE"])(limpiar_chroma)
 
 if __name__ == "__main__":
-    PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    os.environ['PATH_LOG'] = f'{os.getenv(PATH)}/log.txt'
+    PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    os.environ['PATH_LOG'] = f'{PATH}/log.txt'
     os.environ['PATH_PDFS'] = f'{PATH}/data'
-    os.environ['PATH_JSON'] = f'{os.getenv('PATH_PDFS')}/dates.json'
-    os.environ['CHROMA_PATH'] = f'{os.getenv('PATH_PDFS')}/chroma'
+    os.environ['PATH_JSON'] = f"{os.getenv('PATH_PDFS')}/dates.json"
+    os.environ['CHROMA_PATH'] = f"{os.getenv('PATH_PDFS')}/chroma"
     os.environ['API_MICROSERVICES_BASE_URL'] = '0.0.0.0'
     os.environ['API_MICROSERVICES_PORT'] = '3001'
     os.environ['CHUNK_SIZE'] = '500'

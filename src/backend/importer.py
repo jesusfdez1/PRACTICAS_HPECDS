@@ -2,7 +2,7 @@ from flask import request
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from data_chunking_embedding import procesar_documentos
+from chunking import procesar_documentos
 
 
 def guardar_archivo(archivo):

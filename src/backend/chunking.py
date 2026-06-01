@@ -2,7 +2,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from embedding_function import get_funcion_embebido, get_fecha_individual
+from embeddings import get_funcion_embebido, get_fecha_individual
 from langchain_chroma import Chroma
 
 

@@ -1,7 +1,57 @@
-/data
+﻿# =========================
+# Project Specific
+# =========================
+/data/
 /log.txt
-/chroma
-/src/webui/node_modules
-/src/webui/.svelte-kit
-/src/__pycache__
+/chroma/
+
+# =========================
+# Python / Backend
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+env/
+.env
+.env.*
+
+# =========================
+# Node.js / Frontend (SvelteKit)
+# =========================
+node_modules/
+/src/frontend/node_modules/
+/src/frontend/.svelte-kit/
+/src/frontend/build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# =========================
+# IDEs & Editor Configuration
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 

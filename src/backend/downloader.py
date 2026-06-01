@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from datetime import timedelta
 from flask import request
-from data_chunking_embedding import procesar_documentos
+from chunking import procesar_documentos
 
 
 global lista_archivos_guardados
@@ -121,9 +121,9 @@ def procesar_enlaces(enlaces):
             if nombre in archivos:
                 print(f"Archivo {nombre} ya descargado.")
             else:
-             with open(f'{os.getenv('PATH_PDFS')}/{nombre}', 'wb') as f:
+             with open(f"{os.getenv('PATH_PDFS')}/{nombre}", 'wb') as f:
                 f.write(respuesta.content)
-                lista_archivos_guardados.append(f'{os.getenv('PATH_PDFS')}/{nombre}')
+                lista_archivos_guardados.append(f"{os.getenv('PATH_PDFS')}/{nombre}")
                 print(f"Archivo {nombre} guardado correctamente.")
 
 
